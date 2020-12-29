@@ -1,0 +1,26 @@
+{
+  "name": "vue-diff",
+  "version": "0.0.0",
+  "description": "Vue diff viewer",
+  "keywords": [
+    "Vue",
+    "VueJS",
+    "Vue diff",
+    "VueJS diff"
+  ],
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoiheart/vue-diff.git"
+  },
+  "author": {
+    "name": "hoiheart",
+    "email": "hoiheart@gmail.com",
+    "url": "https://github.com/hoiheart"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hoiheart/vue-diff/issues"
+  },
+  "homepage": "https://github.com/hoiheart/vue-diff#readme"
+}
