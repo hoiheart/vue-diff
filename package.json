@@ -1,26 +1,78 @@
 {
   "name": "vue-diff",
   "version": "0.0.0",
+  "private": true,
   "description": "Vue diff viewer",
+  "author": {
+    "name": "hoiheart",
+    "email": "hoiheart@gmail.com",
+    "url": "https://github.com/hoiheart"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test:unit": "vue-cli-service test:unit",
+    "test:e2e": "vue-cli-service test:e2e",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^3.6.5",
+    "diff": "^5.0.0",
+    "prismjs": "^1.22.0",
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/diff": "^5.0.0",
+    "@types/jest": "^24.0.19",
+    "@types/prismjs": "^1.16.2",
+    "@typescript-eslint/eslint-plugin": "^2.33.0",
+    "@typescript-eslint/parser": "^2.33.0",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-typescript": "~4.5.0",
+    "@vue/cli-plugin-unit-jest": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/compiler-sfc": "^3.0.0",
+    "@vue/eslint-config-standard": "^5.1.2",
+    "@vue/eslint-config-typescript": "^5.0.2",
+    "@vue/test-utils": "^2.0.0-0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "eslint-plugin-vue": "^7.0.0-0",
+    "lint-staged": "^9.5.0",
+    "sass": "^1.26.5",
+    "sass-loader": "^8.0.2",
+    "typescript": "~3.9.3",
+    "vite": "^1.0.0-rc.13",
+    "vue-jest": "^5.0.0-0"
+  },
+  "_id": "vue-diff@0.0.0",
+  "bugs": {
+    "url": "https://github.com/hoiheart/vue-diff/issues"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "homepage": "https://github.com/hoiheart/vue-diff#readme",
   "keywords": [
     "Vue",
     "VueJS",
     "Vue diff",
     "VueJS diff"
   ],
-  "scripts": {},
+  "license": "ISC",
+  "lint-staged": {
+    "*.{js,jsx,vue,ts,tsx}": [
+      "vue-cli-service lint",
+      "git add"
+    ]
+  },
+  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hoiheart/vue-diff.git"
-  },
-  "author": {
-    "name": "hoiheart",
-    "email": "hoiheart@gmail.com",
-    "url": "https://github.com/hoiheart"
-  },
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/hoiheart/vue-diff/issues"
-  },
-  "homepage": "https://github.com/hoiheart/vue-diff#readme"
+  }
 }
