@@ -1,13 +1,14 @@
 <template>
   <div class="vue-diff-wrapper">
-    <Viewer :language="language" v-bind="{...left}" />
-    <Viewer :language="language" v-bind="{...right}" />
+    <!-- <Viewer type="unified" :language="language" :diffLines="diffLines" /> -->
+    <Viewer type="prev" :language="language" :diffs="diffs" />
+    <Viewer type="current" :language="language" :diffs="diffs" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import Diff from 'diff'
+import { defineComponent, reactive } from 'vue'
+import * as Diff from 'diff'
 import Viewer from './Viewer.vue'
 
 export default defineComponent({
@@ -19,26 +20,19 @@ export default defineComponent({
       type: String,
       required: true
     },
-    left: {
-      type: Object,
-      required: true,
-      code: {
-        type: String,
-        required: true
-      }
+    prev: {
+      type: String,
+      required: true
     },
-    right: {
-      type: Object,
-      required: true,
-      code: {
-        type: String,
-        required: true
-      }
+    current: {
+      type: String,
+      required: true
     }
   },
   setup (props) {
-    const diff = Diff.diffLines(props.left.code, props.right.code)
-    console.log(diff)
+    const diffs = reactive(Diff.diffLines(props.prev, props.current))
+
+    return { diffs }
   }
 })
 </script>

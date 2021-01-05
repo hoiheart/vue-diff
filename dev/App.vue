@@ -2,38 +2,28 @@
   <h1>Vue Diff</h1>
   <Diff
     language="javascript"
-    :left="left"
-    :right="right"
+    :prev="prev"
+    :current="current"
   />
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
   setup () {
-    const left = reactive({
-      code:
+    const prev = ref(
 `var a = {
   "name": "vue-diff",
   "version": "0.0.0",
   "description": "Vue diff viewer",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint"
-  }
-}`
-    })
+  "private": true
+}`)
 
-    const right = reactive({
-      code:
+    const current = ref(
 `var b = {
   "name": "vue-diff",
   "version": "0.0.1",
-  "private": true,
   "description": "Vue diff viewer",
   "scripts": {
     "dev": "vite",
@@ -42,10 +32,9 @@ export default defineComponent({
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint"
   }
-}`
-    })
+}`)
 
-    return { left, right }
+    return { prev, current }
   }
 })
 </script>

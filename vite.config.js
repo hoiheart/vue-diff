@@ -1,10 +1,17 @@
+import commonjs from '@rollup/plugin-commonjs'
+
 export default {
+  rollupInputOptions: {
+    plugins: [
+      commonjs()
+    ]
+  },
   optimizeDeps: {
     include: [
-      'prismjs/components',
-      'prismjs/plugins/line-numbers/prism-line-numbers',
-      'prismjs/plugins/autoloader/prism-autoloader',
-      'prismjs/plugins/diff-highlight/prism-diff-highlight'
+      // 'prismjs/components/index',
+      // 'prismjs/plugins/autoloader/prism-autoloader',
+      // 'prismjs/plugins/diff-highlight/prism-diff-highlight',
+      // 'prismjs/plugins/line-numbers/prism-line-numbers'
     ]
   }
 }
