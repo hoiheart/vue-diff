@@ -1,10 +1,23 @@
 <template>
   <h1>Vue Diff</h1>
-  <Diff
-    language="javascript"
-    :prev="prev"
-    :current="current"
-  />
+  <section>
+    <h2>Split</h2>
+    <Diff
+      type="split"
+      language="javascript"
+      :prev="prev"
+      :current="current"
+    />
+  </section>
+  <section>
+    <h2>Unified</h2>
+    <Diff
+      type="unified"
+      language="javascript"
+      :prev="prev"
+      :current="current"
+    />
+  </section>
 </template>
 
 <script lang="ts">

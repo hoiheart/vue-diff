@@ -14,32 +14,38 @@
 </template>
 
 <script lang="ts">
+import * as Diff from 'diff'
 import { defineComponent, ref, PropType } from 'vue'
 import { renderLines } from './utils'
 import Code from './Code.vue'
 
-import type { Type, Change } from './utils'
+import type { Role } from './utils'
 
 export default defineComponent({
   components: {
     Code
   },
   props: {
-    type: {
-      type: String as PropType<Type>,
+    role: {
+      type: String as PropType<Role>,
       required: true
     },
     language: {
       type: String,
       required: true
     },
-    diffs: {
-      type: Array as PropType<Array<Change>>,
+    prev: {
+      type: String,
+      required: true
+    },
+    current: {
+      type: String,
       required: true
     }
   },
   setup (props) {
-    const lines = ref(renderLines(props.type, props.diffs))
+    const diff = Diff.diffLines(props.prev, props.current)
+    const lines = ref(renderLines(props.role, diff))
 
     return { lines }
   }

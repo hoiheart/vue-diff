@@ -1,21 +1,30 @@
 <template>
-  <div class="vue-diff-wrapper">
-    <!-- <Viewer type="unified" :language="language" :diffLines="diffLines" /> -->
-    <Viewer type="prev" :language="language" :diffs="diffs" />
-    <Viewer type="current" :language="language" :diffs="diffs" />
+  <div class="vue-diff-wrapper" :class="`vue-diff-wrapper-${type}`">
+    <template v-if="type === 'unified'">
+      <Viewer role="unified" :language="language" :prev="prev" :current="current" />
+    </template>
+    <template v-else>
+      <Viewer role="prev" :language="language" :prev="prev" :current="current" />
+      <Viewer role="current" :language="language" :prev="prev" :current="current" />
+    </template>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
-import * as Diff from 'diff'
+import { defineComponent, PropType } from 'vue'
 import Viewer from './Viewer.vue'
+
+import { Type } from './utils'
 
 export default defineComponent({
   components: {
     Viewer
   },
   props: {
+    type: {
+      type: String as PropType<Type>,
+      required: true
+    },
     language: {
       type: String,
       required: true
@@ -28,11 +37,6 @@ export default defineComponent({
       type: String,
       required: true
     }
-  },
-  setup (props) {
-    const diffs = reactive(Diff.diffLines(props.prev, props.current))
-
-    return { diffs }
   }
 })
 </script>
@@ -44,7 +48,7 @@ export default defineComponent({
   width: 100%;
 }
 
-.vue-diff-viewer {
+.vue-diff-wrapper-split .vue-diff-viewer {
   width: calc(50% - 10px);
 }
 </style>
