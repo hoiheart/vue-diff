@@ -1,4 +1,4 @@
-@import 'prismjs/themes/prism-okaidia.css';
+@import '../../node_modules/prismjs/themes/prism-okaidia.css';
 
 .vue-diff-viewer {
   background-color: #272822;

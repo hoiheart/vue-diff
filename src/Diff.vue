@@ -47,8 +47,4 @@ export default defineComponent({
   justify-content: space-between;
   width: 100%;
 }
-
-.vue-diff-wrapper-split .vue-diff-viewer {
-  width: calc(50% - 10px);
-}
 </style>

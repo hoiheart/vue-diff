@@ -1,5 +1,5 @@
 <template>
-  <div ref="viewer" class="vue-diff-viewer">
+  <div ref="viewer" class="vue-diff-viewer" :class="`vue-diff-viewer-${role}`">
     <table>
       <tbody>
         <Code
@@ -15,11 +15,11 @@
 
 <script lang="ts">
 import * as Diff from 'diff'
-import { defineComponent, ref, PropType } from 'vue'
+import { defineComponent, ref, PropType, watch } from 'vue'
 import { renderLines } from './utils'
 import Code from './Code.vue'
 
-import type { Role } from './utils'
+import type { Role, Line } from './utils'
 
 export default defineComponent({
   components: {
@@ -44,8 +44,12 @@ export default defineComponent({
     }
   },
   setup (props) {
-    const diff = Diff.diffLines(props.prev, props.current)
-    const lines = ref(renderLines(props.role, diff))
+    const lines = ref<Array<Line>>([])
+
+    watch([() => props.prev, () => props.current], () => {
+      const diff = Diff.diffLines(props.prev, props.current)
+      lines.value = renderLines(props.role, diff)
+    }, { immediate: true })
 
     return { lines }
   }
@@ -53,14 +57,21 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
+.vue-diff-wrapper-split {
+  .vue-diff-viewer {
+    width: calc(50% - 10px);
+  }
+}
+
 .vue-diff-viewer {
-  overflow: hidden;
+  overflow: auto;
+  width: 100%;
   padding: 1em 0;
   border-radius: 0.3em;
 }
 
 table {
-  width: 100%;
+  min-width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }

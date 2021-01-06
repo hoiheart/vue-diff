@@ -11,6 +11,8 @@ interface Line {
   value: string;
 }
 
+const MODIFIED_TAG = 'vue-diff-modified'
+
 function getDiffType (diff: Change) {
   return diff.added ? 'added' : diff.removed ? 'removed' : 'equal'
 }
@@ -20,7 +22,7 @@ const renderLine = (diffWords: Array<Change>) => {
     const type = getDiffType(word)
 
     if (type === 'added') {
-      return `<span class="token modified">${word.value}</span>`
+      return `<${MODIFIED_TAG}>${word.value}</${MODIFIED_TAG}>`
     } else {
       return word.value
     }
@@ -100,7 +102,42 @@ const renderCurrent = (diffs: Array<Change>) => {
 }
 
 const renderUnified = (diffs: Array<Change>) => {
-  console.log(diffs)
+  const result: Array<Line> = []
+  let lineNum = 0
+
+  diffs.map((diff, index) => {
+    const type = getDiffType(diff)
+    const prevDiff = index > 0 ? diffs[index - 1] : null
+    const nextDiff = index < diffs.length - 1 ? diffs[index + 1] : null
+    const isModifiedPrevLine = nextDiff && diff.count === 1 && nextDiff.count === 1 && type === 'removed' && nextDiff.added
+    const isModifiedCurrentLine = prevDiff && diff.count === 1 && prevDiff.count === 1 && type === 'added' && prevDiff.removed
+
+    if (isModifiedPrevLine) {
+      const diffWords = Diff.diffWords((nextDiff as Change).value, diff.value)
+      diff.value = renderLine(diffWords)
+    }
+
+    if (isModifiedCurrentLine) {
+      const diffWords = Diff.diffWords((prevDiff as Change).value, diff.value)
+      diff.value = renderLine(diffWords)
+    }
+
+    diff.value.replace(/\n$/, '').split('\n').map((value) => {
+      const skip = type === 'removed'
+
+      if (!skip) {
+        lineNum = lineNum + 1
+      }
+
+      result.push({
+        type,
+        lineNum: skip ? undefined : lineNum,
+        value
+      })
+    })
+  })
+
+  return result
 }
 
 const renderLines = (role: Role, diffs: Array<Change>) => {
@@ -112,8 +149,10 @@ const renderLines = (role: Role, diffs: Array<Change>) => {
     return renderCurrent(deepCopy)
   } else if (role === 'unified') {
     return renderUnified(deepCopy)
+  } else {
+    return []
   }
 }
 
-export { renderLines }
+export { MODIFIED_TAG, renderLines }
 export type { Type, Role, Change, Line }
