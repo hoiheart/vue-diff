@@ -2,7 +2,7 @@ import * as Diff from 'diff'
 
 import type { Change } from 'diff'
 
-type Type = 'split' | 'unified'
+type Mode = 'split' | 'unified'
 type Role = 'prev' | 'current' | 'unified'
 
 interface Line {
@@ -11,7 +11,8 @@ interface Line {
   value: string;
 }
 
-const MODIFIED_TAG = 'vue-diff-modified'
+const MODIFIED_START_TAG = '###VueDiffModifiedStart###'
+const MODIFIED_CLOSE_TAG = '###VueDiffModifiedClose###'
 
 function getDiffType (diff: Change) {
   return diff.added ? 'added' : diff.removed ? 'removed' : 'equal'
@@ -22,7 +23,7 @@ const renderLine = (diffWords: Array<Change>) => {
     const type = getDiffType(word)
 
     if (type === 'added') {
-      return `<${MODIFIED_TAG}>${word.value}</${MODIFIED_TAG}>`
+      return `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}`
     } else {
       return word.value
     }
@@ -43,7 +44,7 @@ const renderPrev = (diffs: Array<Change>) => {
     if (isUnuseLine) return
 
     if (isModifiedLine) {
-      const diffWords = Diff.diffWords((nextDiff as Change).value, diff.value)
+      const diffWords = Diff.diffChars((nextDiff as Change).value, diff.value)
       diff.value = renderLine(diffWords)
     }
 
@@ -79,7 +80,7 @@ const renderCurrent = (diffs: Array<Change>) => {
     if (isUnuseLine) return
 
     if (isModifiedLine) {
-      const diffWords = Diff.diffWords((prevDiff as Change).value, diff.value)
+      const diffWords = Diff.diffChars((prevDiff as Change).value, diff.value)
       diff.value = renderLine(diffWords)
     }
 
@@ -93,7 +94,7 @@ const renderCurrent = (diffs: Array<Change>) => {
       result.push({
         type,
         lineNum: skip ? undefined : lineNum,
-        value: skip ? '\n' : value
+        value: skip ? '' : value
       })
     })
   })
@@ -113,12 +114,12 @@ const renderUnified = (diffs: Array<Change>) => {
     const isModifiedCurrentLine = prevDiff && diff.count === 1 && prevDiff.count === 1 && type === 'added' && prevDiff.removed
 
     if (isModifiedPrevLine) {
-      const diffWords = Diff.diffWords((nextDiff as Change).value, diff.value)
+      const diffWords = Diff.diffChars((nextDiff as Change).value, diff.value)
       diff.value = renderLine(diffWords)
     }
 
     if (isModifiedCurrentLine) {
-      const diffWords = Diff.diffWords((prevDiff as Change).value, diff.value)
+      const diffWords = Diff.diffChars((prevDiff as Change).value, diff.value)
       diff.value = renderLine(diffWords)
     }
 
@@ -154,5 +155,5 @@ const renderLines = (role: Role, diffs: Array<Change>) => {
   }
 }
 
-export { MODIFIED_TAG, renderLines }
-export type { Type, Role, Change, Line }
+export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, renderLines }
+export type { Mode, Role, Change, Line }

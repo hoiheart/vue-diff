@@ -4,17 +4,15 @@
       {{ data.lineNum }}
     </td>
     <td class="code">
-      <pre><code ref="codeRef" :class="`language-${language}`" v-html="code"></code></pre>
+      <pre><code ref="codeRef" :class="`language-${language}`" v-html="code || '\n'"></code></pre>
     </td>
   </tr>
 </template>
 
 <script lang="ts">
-// @ts-ignore
-import { encode } from 'html-entities'
-import { defineComponent, PropType, ref, onMounted, watch, nextTick, computed } from 'vue'
+import { defineComponent, PropType, ref, computed } from 'vue'
 import { Prism } from './index'
-import { MODIFIED_TAG, Line } from './utils'
+import { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, Line } from './utils'
 
 export default defineComponent({
   props: {
@@ -30,15 +28,10 @@ export default defineComponent({
   setup (props) {
     const codeRef = ref(null)
     const code = computed(() => {
-      return encode(props.data.value)
-        .replace(new RegExp(`&lt;${MODIFIED_TAG}&gt;`, 'gi'), '<span class="token modified">')
-        .replace(new RegExp(`&lt;/${MODIFIED_TAG}&gt;`, 'gi'), '</span>')
-    })
-
-    onMounted(() => {
-      watch(() => props.data.value, () => {
-        nextTick(() => Prism.highlightElement(codeRef.value as unknown as HTMLElement))
-      }, { immediate: true })
+      const highlight = Prism.highlight(props.data.value, Prism.languages[props.language], props.language)
+      return highlight
+        .replace(new RegExp(`${MODIFIED_START_TAG}`, 'gi'), '<span class="token modified">')
+        .replace(new RegExp(`${MODIFIED_CLOSE_TAG}`, 'gi'), '</span>')
     })
 
     return { codeRef, code }

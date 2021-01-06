@@ -1,6 +1,6 @@
 <template>
-  <div class="vue-diff-wrapper" :class="`vue-diff-wrapper-${type}`">
-    <template v-if="type === 'unified'">
+  <div class="vue-diff-wrapper" :class="`vue-diff-wrapper-${mode}`">
+    <template v-if="mode === 'unified'">
       <Viewer role="unified" :language="language" :prev="prev" :current="current" />
     </template>
     <template v-else>
@@ -14,15 +14,15 @@
 import { defineComponent, PropType } from 'vue'
 import Viewer from './Viewer.vue'
 
-import { Type } from './utils'
+import { Mode } from './utils'
 
 export default defineComponent({
   components: {
     Viewer
   },
   props: {
-    type: {
-      type: String as PropType<Type>,
+    mode: {
+      type: String as PropType<Mode>,
       required: true
     },
     language: {

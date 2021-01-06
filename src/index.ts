@@ -1,16 +1,15 @@
 import Prism from 'prismjs'
-import 'prismjs/plugins/keep-markup/prism-keep-markup'
 
 import Diff from './Diff.vue'
 
 import type { App } from 'vue'
 
-// @ts-ignore
-Prism.manual = true
-
 interface PluginOptions {
   componentName: string;
 }
+
+// @ts-ignore
+Prism.manual = true
 
 export default {
   install: (app: App, options = {}) => {
