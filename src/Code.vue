@@ -4,15 +4,18 @@
       {{ data.lineNum }}
     </td>
     <td class="code">
-      <pre><code ref="codeRef" :class="`language-${language}`" v-html="code || '\n'"></code></pre>
+      <pre :class="`language-${language}`"><code ref="codeRef" :class="`language-${language}`" v-html="code || '\n'"></code></pre>
     </td>
   </tr>
 </template>
 
 <script lang="ts">
+import Prism from 'prismjs'
 import { defineComponent, PropType, ref, computed } from 'vue'
-import { Prism } from './index'
 import { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, Line } from './utils'
+
+// @ts-ignore
+Prism.manual = true
 
 export default defineComponent({
   props: {
@@ -28,8 +31,7 @@ export default defineComponent({
   setup (props) {
     const codeRef = ref(null)
     const code = computed(() => {
-      const highlight = Prism.highlight(props.data.value, Prism.languages[props.language], props.language)
-      return highlight
+      return Prism.highlight(props.data.value, Prism.languages[props.language], props.language)
         .replace(new RegExp(`${MODIFIED_START_TAG}`, 'gi'), '<span class="token modified">')
         .replace(new RegExp(`${MODIFIED_CLOSE_TAG}`, 'gi'), '</span>')
     })
@@ -80,7 +82,6 @@ tr.vue-diff-row-removed td {
   pre[class*="language-"]:before {
     content: "-";
   }
-
 }
 
 .vue-diff-viewer-prev {

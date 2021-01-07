@@ -42,7 +42,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
+import template from './template'
 
 export default defineComponent({
   setup () {
@@ -53,27 +54,26 @@ export default defineComponent({
     const themes = ref(['coy', 'dark', 'funky', 'okaidia', 'solarizedlight', 'tomorrow', 'twilight'])
     const theme = ref('okaidia')
 
-    const prev = ref(
-`var a1 = {
-  "name": "vue-diff",
-  "version": "0.0.0",
-  "description": "Vue diff viewer",
-  "private": true
-}`)
+    const prev = ref('')
+    const current = ref('')
 
-    const current = ref(
-`const b2 = {
-  "name": "vue-diff",
-  "version": "0.0.1",
-  "description": "Vue diff viewer",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint"
-  }
-}`)
+    watch(() => language.value, () => {
+      if (language.value === 'javascript') {
+        prev.value = template.javascript1
+        current.value = template.javascript2
+      } else if (language.value === 'html') {
+        prev.value = template.html1
+        current.value = template.html2
+      } else if (language.value === 'css') {
+        prev.value = template.css1
+        current.value = template.css2
+      } else {
+        prev.value = ''
+        current.value = ''
+      }
+    }, {
+      immediate: true
+    })
 
     return {
       modes,

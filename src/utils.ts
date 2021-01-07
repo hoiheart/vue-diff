@@ -38,8 +38,8 @@ const renderPrev = (diffs: Array<Change>) => {
     const type = getDiffType(diff)
     const prevDiff = index > 0 ? diffs[index - 1] : null
     const nextDiff = index < diffs.length - 1 ? diffs[index + 1] : null
-    const isModifiedLine = nextDiff && diff.count === 1 && nextDiff.count === 1 && type === 'removed' && nextDiff.added
-    const isUnuseLine = prevDiff && diff.count === 1 && prevDiff.count === 1 && type === 'added' && prevDiff.removed
+    const isModifiedLine = nextDiff && diff.count === nextDiff.count && type === 'removed' && nextDiff.added
+    const isUnuseLine = prevDiff && diff.count === prevDiff.count && type === 'added' && prevDiff.removed
 
     if (isUnuseLine) return
 
@@ -74,8 +74,8 @@ const renderCurrent = (diffs: Array<Change>) => {
     const type = getDiffType(diff)
     const prevDiff = index > 0 ? diffs[index - 1] : null
     const nextDiff = index < diffs.length - 1 ? diffs[index + 1] : null
-    const isModifiedLine = prevDiff && diff.count === 1 && prevDiff.count === 1 && type === 'added' && prevDiff.removed
-    const isUnuseLine = nextDiff && diff.count === 1 && nextDiff.count === 1 && type === 'removed' && nextDiff.added
+    const isModifiedLine = prevDiff && diff.count === prevDiff.count && type === 'added' && prevDiff.removed
+    const isUnuseLine = nextDiff && diff.count === nextDiff.count && type === 'removed' && nextDiff.added
 
     if (isUnuseLine) return
 
@@ -110,18 +110,6 @@ const renderUnified = (diffs: Array<Change>) => {
     const type = getDiffType(diff)
     const prevDiff = index > 0 ? diffs[index - 1] : null
     const nextDiff = index < diffs.length - 1 ? diffs[index + 1] : null
-    const isModifiedPrevLine = nextDiff && diff.count === 1 && nextDiff.count === 1 && type === 'removed' && nextDiff.added
-    const isModifiedCurrentLine = prevDiff && diff.count === 1 && prevDiff.count === 1 && type === 'added' && prevDiff.removed
-
-    if (isModifiedPrevLine) {
-      const diffWords = Diff.diffChars((nextDiff as Change).value, diff.value)
-      diff.value = renderLine(diffWords)
-    }
-
-    if (isModifiedCurrentLine) {
-      const diffWords = Diff.diffChars((prevDiff as Change).value, diff.value)
-      diff.value = renderLine(diffWords)
-    }
 
     diff.value.replace(/\n$/, '').split('\n').map((value) => {
       const skip = type === 'removed'
