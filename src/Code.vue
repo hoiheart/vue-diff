@@ -1,42 +1,64 @@
 <template>
-  <tr :class="`vue-diff-row vue-diff-row-${data.type}`">
-    <td class="lineNum">
-      {{ data.lineNum }}
-    </td>
-    <td class="code">
-      <pre :class="`language-${language}`"><code ref="codeRef" :class="`language-${language}`" v-html="code || '\n'"></code></pre>
-    </td>
+  <tr v-if="mode === 'split'">
+    <template :key="index" v-for="(line, index) in data">
+      <td class="lineNum" :class="`vue-diff-cell-${line.type}`">
+        {{ line.lineNum }}
+      </td>
+      <td class="code" :class="`vue-diff-cell-${line.type}`">
+        <pre :class="`language-${language}`"><code :class="`language-${language}`" v-html="getHighlight(line.value)"></code></pre>
+      </td>
+    </template>
   </tr>
+  <template v-if="mode === 'unified'">
+    <template :key="index" v-for="(line, index) in data">
+      <tr v-if="!getSkipUnified(line, index)">
+        <td class="lineNum" :class="`vue-diff-cell-${line.type}`">
+          {{ index === 1 ? line.lineNum : undefined }}
+        </td>
+        <td class="code" :class="`vue-diff-cell-${line.type}`">
+          <pre :class="`language-${language}`"><code :class="`language-${language}`" v-html="getHighlight(line.value)"></code></pre>
+        </td>
+      </tr>
+    </template>
+  </template>
 </template>
 
 <script lang="ts">
 import Prism from 'prismjs'
 import { defineComponent, PropType, ref, computed } from 'vue'
-import { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, Line } from './utils'
+import { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG } from './utils'
 
-// @ts-ignore
-Prism.manual = true
+import type { Mode, Lines, Line } from './utils'
 
 export default defineComponent({
   props: {
-    data: {
-      type: Object as PropType<Line>,
+    mode: {
+      type: String as PropType<Mode>,
       required: true
     },
     language: {
       type: String,
       required: true
+    },
+    data: {
+      type: Object as PropType<Array<Lines>>,
+      required: true
     }
   },
   setup (props) {
-    const codeRef = ref(null)
-    const code = computed(() => {
-      return Prism.highlight(props.data.value, Prism.languages[props.language], props.language)
-        .replace(new RegExp(`${MODIFIED_START_TAG}`, 'gi'), '<span class="token modified">')
-        .replace(new RegExp(`${MODIFIED_CLOSE_TAG}`, 'gi'), '</span>')
-    })
+    const getSkipUnified = (line: Line, index: number) => {
+      return ((index === 0 && line.type === 'equal') || line.type === 'disabled')
+    }
 
-    return { codeRef, code }
+    const getHighlight = (value: string) => {
+      if (!value) return '\n'
+
+      console.log(Prism.highlight(value, Prism.languages[props.language], props.language))
+      return Prism.highlight(value, Prism.languages[props.language], props.language)
+      // .replace(new RegExp(`${MODIFIED_START_TAG}`, 'gi'), '<span class="token modified">')
+      // .replace(new RegExp(`${MODIFIED_CLOSE_TAG}`, 'gi'), '</span>')
+    }
+    return { getSkipUnified, getHighlight }
   }
 })
 </script>
@@ -72,47 +94,35 @@ pre[class*="language-"] {
   border-radius: 0;
 }
 
-tr.vue-diff-row-removed td {
+td.vue-diff-cell-removed {
   background-color: rgba(255, 0, 0, .1);
 
   :deep(.token.modified) {
     background-color: rgba(255, 0, 0, .3);
   }
+}
 
+td.vue-diff-cell-removed.code {
   pre[class*="language-"]:before {
     content: "-";
   }
 }
 
-.vue-diff-viewer-prev {
-  tr.vue-diff-row-added td {
-    background-color: rgba(128, 128, 128, 0.1);
-
-    pre[class*="language-"]:before {
-      display: none;
-    }
-  }
-}
-
-tr.vue-diff-row-added td {
+td.vue-diff-cell-added {
   background-color: rgba(0, 255, 128, .1);
 
   :deep(.token.modified) {
     background-color: rgba(0, 255, 128, .3);
   }
+}
 
+td.vue-diff-cell-added.code {
   pre[class*="language-"]:before {
     content: "+";
   }
 }
 
-.vue-diff-viewer-current {
-  tr.vue-diff-row-removed td {
-    background-color: rgba(128, 128, 128, 0.1);
-
-    pre[class*="language-"]:before {
-      display: none;
-    }
-  }
+td.vue-diff-cell-disabled {
+  background-color: rgba(128, 128, 128, 0.1);
 }
 </style>

@@ -1,24 +1,31 @@
 <template>
   <div class="vue-diff-wrapper" :class="`vue-diff-wrapper-${mode}`">
-    <template v-if="mode === 'unified'">
-      <Viewer role="unified" :language="language" :prev="prev" :current="current" />
-    </template>
-    <template v-else>
-      <Viewer role="prev" :language="language" :prev="prev" :current="current" />
-      <Viewer role="current" :language="language" :prev="prev" :current="current" />
-    </template>
+    <div ref="viewer" class="vue-diff-viewer">
+      <table>
+        <tbody>
+          <Code
+            :key="index"
+            v-for="(data, index) in lines"
+            :mode="mode"
+            :language="language"
+            :data="data"
+          />
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
-import Viewer from './Viewer.vue'
+import { defineComponent, PropType, ref, watch } from 'vue'
+import { renderLines } from './utils'
+import Code from './Code.vue'
 
-import { Mode } from './utils'
+import type { Mode, Lines } from './utils'
 
 export default defineComponent({
   components: {
-    Viewer
+    Code
   },
   props: {
     mode: {
@@ -37,6 +44,19 @@ export default defineComponent({
       type: String,
       required: true
     }
+  },
+  setup (props) {
+    const lines = ref<Array<Lines>>([])
+
+    watch([
+      () => props.mode,
+      () => props.prev,
+      () => props.current
+    ], () => {
+      lines.value = renderLines(props.prev, props.current)
+    }, { immediate: true })
+
+    return { lines }
   }
 })
 </script>
@@ -46,5 +66,18 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   width: 100%;
+}
+
+.vue-diff-viewer {
+  overflow: auto;
+  width: 100%;
+  padding: 1em 0;
+  border-radius: 0.3em;
+}
+
+table {
+  min-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
 }
 </style>
