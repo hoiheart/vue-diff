@@ -10,16 +10,14 @@
     </template>
   </tr>
   <template v-if="mode === 'unified'">
-    <template :key="index" v-for="(line, index) in data">
-      <tr v-if="!getSkipUnified(line, index)">
-        <td class="lineNum" :class="`vue-diff-cell-${line.type}`">
-          {{ index === 1 ? line.lineNum : undefined }}
-        </td>
-        <td class="code" :class="`vue-diff-cell-${line.type}`">
-          <pre :class="`language-${language}`"><code :class="`language-${language}`" v-html="getHighlight(line.value)"></code></pre>
-        </td>
-      </tr>
-    </template>
+    <tr>
+      <td class="lineNum" :class="`vue-diff-cell-${data[0].type}`">
+        {{ data[0].lineNum }}
+      </td>
+      <td class="code" :class="`vue-diff-cell-${data[0].type}`">
+        <pre :class="`language-${language}`"><code :class="`language-${language}`" v-html="getHighlight(data[0].value)"></code></pre>
+      </td>
+    </tr>
   </template>
 </template>
 
@@ -53,7 +51,6 @@ export default defineComponent({
     const getHighlight = (value: string) => {
       if (!value) return '\n'
 
-      console.log(Prism.highlight(value, Prism.languages[props.language], props.language))
       return Prism.highlight(value, Prism.languages[props.language], props.language)
       // .replace(new RegExp(`${MODIFIED_START_TAG}`, 'gi'), '<span class="token modified">')
       // .replace(new RegExp(`${MODIFIED_CLOSE_TAG}`, 'gi'), '</span>')

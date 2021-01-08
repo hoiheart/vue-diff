@@ -53,7 +53,7 @@ export default defineComponent({
       () => props.prev,
       () => props.current
     ], () => {
-      lines.value = renderLines(props.prev, props.current)
+      lines.value = renderLines(props.mode, props.prev, props.current)
     }, { immediate: true })
 
     return { lines }
