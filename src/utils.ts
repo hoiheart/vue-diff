@@ -1,4 +1,3 @@
-import Prism from 'prismjs'
 import * as Diff from 'diff'
 
 import type { Change } from 'diff'
@@ -15,27 +14,12 @@ interface Line {
 type Lines = Array<Line>
 type Diffs = Array<Change>
 
-// @ts-ignore
-Prism.manual = true
+const MODIFIED_START_TAG = '<vue-diff-modified>'
+const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
 
-const MODIFIED_START_TAG = '<span class="token modified">'
-const MODIFIED_CLOSE_TAG = '</span>'
-
-function getDiffType (diff: Change) {
+const getDiffType = (diff: Change) => {
   if (!diff.count) return 'disabled'
   return diff.added ? 'added' : diff.removed ? 'removed' : 'equal'
-}
-
-const renderLine = (diffWords: Array<Change>) => {
-  return diffWords.filter(word => getDiffType(word) !== 'removed').map(word => {
-    const type = getDiffType(word)
-
-    if (type === 'added') {
-      return `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}`
-    } else {
-      return word.value
-    }
-  }).join('')
 }
 
 const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
@@ -130,7 +114,7 @@ const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> =>
     }
 
     if (type === 'added') {
-      if (acc[acc.length - 1][0].removed) {
+      if (acc.length && acc[acc.length - 1][0] && acc[acc.length - 1][0].removed) {
         acc[acc.length - 1].push(curr)
       } else {
         acc.push([curr])
@@ -163,5 +147,51 @@ const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> =>
   }
 }
 
-export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, renderLines }
+const renderWords = (prev: string, current: string) => {
+  return Diff.diffWords(prev, current).filter(word => getDiffType(word) !== 'removed').map(word => {
+    const type = getDiffType(word)
+    if (type === 'added') {
+      return `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}`
+    } else {
+      return word.value
+    }
+  }).join('')
+}
+
+// const renderWords = (prev: string, current: string) => {
+//   if (!document) {
+//     throw new Error('This function support client-only')
+//   }
+
+//   let prevEl: HTMLElement | null = document.createElement('div')
+//   prevEl.innerHTML = prev
+
+//   let currentEl: HTMLElement | null = document.createElement('div')
+//   currentEl.innerHTML = current
+
+//   Array.from(currentEl.children).map((node, index) => {
+//     if (prevEl?.children[index] && (prevEl.children[index].textContent !== node.textContent)) {
+//       node.innerHTML = `${MODIFIED_START_TAG}${node.textContent}${MODIFIED_CLOSE_TAG}`
+//     }
+//   })
+
+//   const code = currentEl.innerHTML
+
+//   prevEl = null
+//   currentEl = null
+
+//   return code
+
+//   // return Diff.diffWords(prev, current).filter(word => getDiffType(word) !== 'removed').map(word => {
+//   //   const type = getDiffType(word)
+
+//   //   if (type === 'added') {
+//   //     return `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}`
+//   //   } else {
+//   //     return word.value
+//   //   }
+//   // })
+// }
+
+export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, renderLines, renderWords }
 export type { Mode, Role, Change, Lines, Line }

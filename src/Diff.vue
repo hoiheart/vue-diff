@@ -69,14 +69,13 @@ export default defineComponent({
 }
 
 .vue-diff-viewer {
-  overflow: auto;
   width: 100%;
   padding: 1em 0;
   border-radius: 0.3em;
 }
 
 table {
-  min-width: 100%;
+  width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
