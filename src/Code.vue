@@ -36,24 +36,6 @@ import type { Mode, Lines } from './utils'
 // @ts-ignore
 Prism.manual = true
 
-// Prism.hooks.add('before-tokenize', function (env) {
-//   if (env.code.match(new RegExp(`${MODIFIED_START_TAG}`, 'gi'))) {
-//     const code = env.code
-//     const pureCode = env.code
-//       .replace(new RegExp(`${MODIFIED_START_TAG}`, 'gi'), '')
-//       .replace(new RegExp(`${MODIFIED_CLOSE_TAG}`, 'gi'), '')
-
-//     env._modified = code
-//     env.code = pureCode
-//   }
-// })
-
-// Prism.hooks.add('after-tokenize', function (env) {
-//   if (env._modified) {
-//     console.log(env)
-//   }
-// })
-
 export default defineComponent({
   props: {
     mode: {
@@ -73,26 +55,21 @@ export default defineComponent({
     const getHighlightCode = (value: string, data?: Lines, index?: number) => {
       if (!value) return '\n'
 
-      let code = value
+      const code = value
 
-      if (data) { // Diff words
-        const diffIndex = index === 0 ? 1 : 0
-        const diffValue = data[diffIndex].value
+      // if (data) { // Diff words
+      //   const diffIndex = index === 0 ? 1 : 0
+      //   const diffValue = data[diffIndex].value
 
-        if (diffValue) { // Wrap custom highlight
-          code = renderWords(diffValue, value)
-        }
-      }
+      //   if (diffValue) { // Wrap custom highlight
+      //     code = renderWords(diffValue, value)
+      //   }
+      // }
 
-      const grammer = Prism.languages[props.language]
-      const highlightCode = Prism.highlight(code, grammer, props.language)
-
-      const regexStartTag = Prism.Token.stringify(Prism.util.encode(Prism.tokenize(MODIFIED_START_TAG, grammer)), props.language)
-      const regexCloseTag = Prism.Token.stringify(Prism.util.encode(Prism.tokenize(MODIFIED_CLOSE_TAG, grammer)), props.language)
+      const grammar = Prism.languages[props.language]
+      const highlightCode = Prism.highlight(code, grammar, props.language)
 
       return highlightCode
-      // .replace(new RegExp(`${regexStartTag}`, 'gi'), '<span class="token modified">')
-      // .replace(new RegExp(`${regexCloseTag}`, 'gi'), '</span>')
     }
 
     return {
@@ -115,10 +92,6 @@ td {
     font-size: 0.9em;
   }
 
-  &.code {
-    width: calc(100% - 2em);
-  }
-
   pre[class*="language-"]:before {
     display: inline-block;
     position: absolute;
@@ -126,30 +99,24 @@ td {
     top: 0;
     opacity: 0.8;
   }
-}
 
-tr.vue-diff-row-split {
-  td.code {
-    width: calc(50% - 2em);
+  pre[class*="language-"] {
+    display: block;
+    position: relative;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    padding-left: 1.5em;
+    overflow: visible;
+    background: none;
+    border-radius: 0;
   }
-}
 
-pre[class*="language-"] {
-  display: block;
-  position: relative;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  padding-left: 1.5em;
-  overflow: visible;
-  background: none;
-  border-radius: 0;
-}
-
-code {
-  word-wrap: break-all;
-  word-break: break-all;
-  white-space: pre-wrap;
+  code {
+    word-wrap: break-all !important;
+    word-break: break-all !important;
+    white-space: pre-wrap !important;
+  }
 }
 
 td.vue-diff-cell-removed {

@@ -51,8 +51,8 @@ export default defineComponent({
     const mode = ref('split')
     const languages = ref(['javascript', 'html', 'css'])
     const language = ref('html')
-    const themes = ref(['light', 'okaidia'])
-    const theme = ref('okaidia')
+    const themes = ref(['light', 'dark'])
+    const theme = ref('light')
 
     const prev = ref('')
     const current = ref('')
