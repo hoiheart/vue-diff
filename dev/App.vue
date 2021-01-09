@@ -51,8 +51,8 @@ export default defineComponent({
     const mode = ref('split')
     const languages = ref(['javascript', 'html', 'css'])
     const language = ref('html')
-    const themes = ref(['light', 'dark'])
-    const theme = ref('light')
+    const themes = ref(['dark', 'light'])
+    const theme = ref('dark')
 
     const prev = ref('')
     const current = ref('')

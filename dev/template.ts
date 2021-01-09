@@ -50,14 +50,14 @@ const html2 =
 </html>`
 
 const css1 =
-`@import '../../node_modules/prismjs/themes/prism-okaidia.css';
+`@import '../../css/style.css';
 
 .vue-diff-viewer {
   background-color: #272822;
 }`
 
 const css2 =
-`@import 'prismjs/themes/prism-okaidia.css';
+`@import 'css/style.css';
 
 div.vue-diff-viewer {
   background-color: #666;

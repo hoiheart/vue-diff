@@ -3,7 +3,7 @@
     <div ref="viewer" class="vue-diff-viewer">
       <table>
         <tbody>
-          <Code
+          <Line
             :key="index"
             v-for="(data, index) in lines"
             :mode="mode"
@@ -19,13 +19,13 @@
 <script lang="ts">
 import { defineComponent, PropType, ref, watch } from 'vue'
 import { renderLines } from './utils'
-import Code from './Code.vue'
+import Line from './Line.vue'
 
 import type { Mode, Lines } from './utils'
 
 export default defineComponent({
   components: {
-    Code
+    Line
   },
   props: {
     mode: {

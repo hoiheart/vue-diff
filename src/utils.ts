@@ -14,8 +14,8 @@ interface Line {
 type Lines = Array<Line>
 type Diffs = Array<Change>
 
-const MODIFIED_START_TAG = '<vue-diff-modified>'
-const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
+const MODIFIED_START_TAG = '<span class="modified">'
+const MODIFIED_CLOSE_TAG = '</span>'
 
 const getDiffType = (diff: Change) => {
   if (!diff.count) return 'disabled'
