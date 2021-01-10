@@ -50,7 +50,7 @@ export default defineComponent({
     const modes = ref(['split', 'unified'])
     const mode = ref('split')
     const languages = ref(['javascript', 'html', 'css'])
-    const language = ref('html')
+    const language = ref('javascript')
     const themes = ref(['dark', 'light'])
     const theme = ref('dark')
 

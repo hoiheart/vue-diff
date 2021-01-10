@@ -109,8 +109,8 @@ td {
 td.vue-diff-cell-removed {
   background-color: rgba(255, 0, 0, .1);
 
-  :deep(.hljs-modified) {
-    background-color: rgba(255, 0, 0, .3);
+  :deep(.modified) {
+    background-color: rgba(255, 0, 0, .2);
   }
 }
 
@@ -123,8 +123,8 @@ td.vue-diff-cell-removed.code {
 td.vue-diff-cell-added {
   background-color: rgba(0, 255, 128, .1);
 
-  :deep(.hljs-modified) {
-    background-color: rgba(0, 255, 128, .3);
+  :deep(.modified) {
+    background-color: rgba(0, 255, 128, .2);
   }
 }
 
