@@ -93,6 +93,13 @@
     "pre-commit": "lint-staged"
   },
   "release": {
+    "branches": [
+      "master",
+      {
+        "name": "alpha",
+        "prerelease": true
+      }
+    ],
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
