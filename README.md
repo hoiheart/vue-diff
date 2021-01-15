@@ -18,7 +18,7 @@ Vue diff viewer plugin
 
 ## Introduction
 
-<img src="https://user-images.githubusercontent.com/25652218/104695609-60533c80-5750-11eb-85dd-0e7d0d79d5ac.png" alt="screenshot" style="max-width:100%;">
+<img src="https://user-images.githubusercontent.com/25652218/104784360-7520e600-57cb-11eb-8abc-ce81dd309e05.png" alt="screenshot" style="max-width:100%;">
 
 You can see the difference between the two codes with the `vue-diff` plugin.  
 This plugin dependent on <a href="https://github.com/kpdecker/jsdiff">diff</a> and <a href="https://github.com/highlightjs/highlight.js/">highlight.js</a>, shows similar results to other diff viewers (e.g., Github Desktop).  
