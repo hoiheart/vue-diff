@@ -30,6 +30,16 @@ jobs:
       - name: Release
         uses: cycjimmy/semantic-release-action@v2
         with:
+          semantic_version: 16
+          branches: |
+            [
+              'master', 
+              'next',
+              {
+                name: 'alpha',
+                prerelease: true
+              }
+            ]
           extra_plugins: |
             @semantic-release/git
         env:
