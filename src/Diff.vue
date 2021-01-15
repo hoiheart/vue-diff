@@ -30,7 +30,7 @@ export default defineComponent({
   props: {
     mode: {
       type: String as PropType<Mode>,
-      required: true
+      default: 'split'
     },
     theme: {
       type: String as PropType<Theme>,
@@ -38,7 +38,7 @@ export default defineComponent({
     },
     language: {
       type: String,
-      default: ''
+      default: 'plaintext'
     },
     prev: {
       type: String,

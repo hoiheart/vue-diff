@@ -48,7 +48,7 @@ import template from './template'
 export default defineComponent({
   setup () {
     const modes = ref(['split', 'unified'])
-    const mode = ref('split')
+    const mode = ref('unified')
     const languages = ref(['javascript', 'html', 'css'])
     const language = ref('javascript')
     const themes = ref(['dark', 'light'])

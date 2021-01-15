@@ -23,7 +23,7 @@
       <td class="code" :class="`vue-diff-cell-${data[0].type}`">
         <Code
           :language="language"
-          :code="setCode(line)"
+          :code="setCode(data[0])"
         />
       </td>
     </tr>
