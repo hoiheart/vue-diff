@@ -1,15 +1,13 @@
 <template>
-  <pre :class="`language-${language}`"><code
-    :class="`language-${language}`"
-    v-html="highlightCode"
-  ></code></pre>
+  <pre><code class="hljs" v-html="highlightCode"></code></pre>
 </template>
 
 <script lang="ts">
-import hljs from 'highlight.js'
-import { defineComponent, ref, onMounted, watch, Ref } from 'vue'
+import { highlight } from 'highlight.js'
+import { defineComponent, ref, onMounted, watch } from 'vue'
 import { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG } from './utils'
-import 'highlight.js/styles/monokai.css'
+
+import type { Ref } from 'vue'
 
 /**
  * Set hightlight code
@@ -19,7 +17,7 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   const hasModifiedTags = code.match(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'))
 
   if (!hasModifiedTags) {
-    highlightCode.value = hljs.highlight(language, code).value
+    highlightCode.value = highlight(language, code).value
     return
   }
 
@@ -29,7 +27,7 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   let originalCode = code // original code with modified tags
   const pureCode = code.replace(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'), '') // Without modified tags
   let pureElement = document.createElement('div')
-  pureElement.innerHTML = hljs.highlight(language, pureCode).value // Highlight DOM without modified tags
+  pureElement.innerHTML = highlight(language, pureCode).value // Highlight DOM without modified tags
 
   const diffElements = (node: HTMLElement) => {
     node.childNodes.forEach(child => {
@@ -113,11 +111,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped lang="scss">
-code {
-  word-wrap: break-all !important;
-  word-break: break-all !important;
-  white-space: pre-wrap !important;
-}
-</style>

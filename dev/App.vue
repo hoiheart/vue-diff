@@ -1,6 +1,4 @@
 <template>
-  <link rel="stylesheet" :href="`/src/themes/${theme}.css`">
-  <h1 class="text-3xl font-extrabold text-gray-100">Vue Diff</h1>
   <div class="form text-gray-100 mt-8">
     <label for="language" class="mr-2">Language:</label>
     <select v-model="language" id="language" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
@@ -33,6 +31,7 @@
       <h2 class="text-2xl font-bold text-gray-100 mb-4">Diff</h2>
       <Diff
         :mode="mode"
+        :theme="theme"
         :language="language"
         :prev="prev"
         :current="current"
@@ -42,7 +41,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
+import { defineComponent, onMounted, ref, watch } from 'vue'
+
 import template from './template'
 
 export default defineComponent({
@@ -58,21 +58,19 @@ export default defineComponent({
     const current = ref('')
 
     watch(() => language.value, () => {
-      if (language.value === 'javascript') {
-        prev.value = template.javascript1
-        current.value = template.javascript2
-      } else if (language.value === 'html') {
-        prev.value = template.html1
-        current.value = template.html2
-      } else if (language.value === 'css') {
-        prev.value = template.css1
-        current.value = template.css2
-      } else {
-        prev.value = ''
-        current.value = ''
-      }
+      // @ts-ignore
+      prev.value = template[`${language.value}1`]
+      // @ts-ignore
+      current.value = template[`${language.value}2`]
     }, {
       immediate: true
+    })
+
+    onMounted(() => {
+      const script = document.createElement('script')
+      script.async = true
+      script.defer = true
+      document.body.appendChild(script)
     })
 
     return {

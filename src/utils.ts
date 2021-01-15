@@ -3,6 +3,7 @@ import * as Diff from 'diff'
 import type { Change } from 'diff'
 
 type Mode = 'split' | 'unified'
+type Theme = 'dark' | 'light' | 'custom'
 type Role = 'prev' | 'current' | 'unified'
 
 interface Line {
@@ -194,4 +195,4 @@ const renderWords = (prev: string, current: string) => {
 }
 
 export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, renderLines, renderWords }
-export type { Mode, Role, Change, Lines, Line }
+export type { Mode, Theme, Role, Change, Lines, Line }

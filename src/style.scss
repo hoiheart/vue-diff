@@ -1,0 +1,101 @@
+.vue-diff-wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.vue-diff-theme-dark {
+  @import 'highlight.js/scss/monokai.scss';
+
+  background-color: #272822;
+}
+
+.vue-diff-theme-light {
+  @import 'highlight.js/scss/vs.scss';
+
+  background-color: #fff;
+}
+
+.vue-diff-viewer {
+  width: 100%;
+  padding: 1em 0;
+  border-radius: 0.3em;
+
+  > table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+
+    td {
+      padding: 0 0.5em;
+      vertical-align: top;
+    
+      &.lineNum {
+        width: 3.5em;
+        padding-top: .05em;
+        text-align: right;
+        color: #999;
+        font-size: 0.9em;
+      }
+    
+      pre {
+        display: block;
+        position: relative;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        padding-left: 1.5em;
+        overflow: visible;
+        background: none;
+        border-radius: 0;
+      }
+
+      .hljs {
+        overflow: visible;
+        padding: 0;
+        background: transparent;
+        word-wrap: break-all;
+        word-break: break-all;
+        white-space: pre-wrap;
+      }
+
+      code {
+        &::before {
+          display: inline-block;
+          position: absolute;
+          left: 0;
+          top: 0;
+          opacity: 0.8;
+        }
+      }
+
+      &.vue-diff-cell-removed {
+        background-color: rgba(255, 0, 0, .1);
+      
+        span.modified {
+          background-color: rgba(255, 0, 0, .2);
+        }
+
+        code::before {
+          content: "-";
+        }
+      }
+
+      &.vue-diff-cell-added {
+        background-color: rgba(0, 255, 128, .1);
+    
+        span.modified {
+          background-color: rgba(0, 255, 128, .2);
+        }
+
+        code:before {
+          content: "+";
+        }
+      }
+
+      &.vue-diff-cell-disabled {
+        background-color: rgba(128, 128, 128, 0.1);
+      }
+    }
+  }
+}

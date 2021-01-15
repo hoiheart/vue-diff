@@ -1,5 +1,5 @@
 <template>
-  <div class="vue-diff-wrapper" :class="`vue-diff-wrapper-${mode}`">
+  <div class="vue-diff-wrapper" :class="`vue-diff-mode-${mode} vue-diff-theme-${theme}`">
     <div ref="viewer" class="vue-diff-viewer">
       <table>
         <tbody>
@@ -21,7 +21,7 @@ import { defineComponent, PropType, ref, watch } from 'vue'
 import { renderLines } from './utils'
 import Line from './Line.vue'
 
-import type { Mode, Lines } from './utils'
+import type { Mode, Theme, Lines } from './utils'
 
 export default defineComponent({
   components: {
@@ -32,17 +32,21 @@ export default defineComponent({
       type: String as PropType<Mode>,
       required: true
     },
+    theme: {
+      type: String as PropType<Theme>,
+      default: 'dark'
+    },
     language: {
       type: String,
-      required: true
+      default: ''
     },
     prev: {
       type: String,
-      required: true
+      default: ''
     },
     current: {
       type: String,
-      required: true
+      default: ''
     }
   },
   setup (props) {
@@ -60,23 +64,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped lang="scss">
-.vue-diff-wrapper {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.vue-diff-viewer {
-  width: 100%;
-  padding: 1em 0;
-  border-radius: 0.3em;
-}
-
-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-</style>

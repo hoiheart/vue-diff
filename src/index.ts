@@ -1,4 +1,5 @@
 import Diff from './Diff.vue'
+import './style.scss'
 
 import type { App } from 'vue'
 
