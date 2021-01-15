@@ -31,7 +31,7 @@ jobs:
         uses: cycjimmy/semantic-release-action@v2
         with:
           semantic_version: 16
-          branch: alpha
+          branch: ${GITHUB_REF##*/}
           extra_plugins: |
             @semantic-release/git
         env:
