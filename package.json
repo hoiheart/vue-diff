@@ -95,6 +95,7 @@
   "release": {
     "branches": [
       "master",
+      "next",
       {
         "name": "alpha",
         "prerelease": true
