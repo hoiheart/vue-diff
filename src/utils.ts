@@ -9,6 +9,7 @@ interface Line {
   type: 'added' | 'removed' | 'equal' | 'disabled';
   lineNum?: number;
   value?: string;
+  chkWords?: boolean;
 }
 
 type Lines = Array<Line>
@@ -17,11 +18,19 @@ type Diffs = Array<Change>
 const MODIFIED_START_TAG = '<vue-diff-modified>'
 const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
 
+/**
+ * Get diff type
+ * @param diff
+ */
 const getDiffType = (diff: Change) => {
   if (!diff.count) return 'disabled'
   return diff.added ? 'added' : diff.removed ? 'removed' : 'equal'
 }
 
+/**
+ * Get lines object on the split mode
+ * @param diffsMap
+ */
 const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
   const result: Array<Lines> = [] // Array(0): prev, Array(1): current
   const lineNum = {
@@ -41,16 +50,20 @@ const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
       if (hasPrevLine) lineNum.prev = lineNum.prev + 1
       if (hasCurrentLine) lineNum.current = lineNum.current + 1
 
+      const chkWords = Boolean(diffs[0].count === diffs[1].count && getDiffType(diffs[0]).match(/added|removed/) && getDiffType(diffs[1]).match(/added|removed/))
+
       result.push([
         {
           type: getDiffType(diffs[0]),
           lineNum: hasPrevLine ? lineNum.prev : undefined,
-          value: hasPrevLine ? prevLines[i] : undefined
+          value: hasPrevLine ? prevLines[i] : undefined,
+          chkWords
         },
         {
           type: getDiffType(diffs[1]),
           lineNum: hasCurrentLine ? lineNum.current : undefined,
-          value: hasCurrentLine ? currentLines[i] : undefined
+          value: hasCurrentLine ? currentLines[i] : undefined,
+          chkWords
         }
       ])
     }
@@ -59,6 +72,10 @@ const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
   return result
 }
 
+/**
+ * Get lines object on the unified mode
+ * @param diffsMap
+ */
 const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
   const result: Array<Lines> = [] // Array(0)
   let lineNum = 0
@@ -101,43 +118,58 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
   return result
 }
 
+/**
+ * Render of objects separated by lines
+ * @param mode
+ * @param prev
+ * @param current
+ */
 const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> => {
+  /**
+   * stacked prev, current data
+   */
   const diffsMap = Diff.diffLines(prev, current).reduce((acc: Array<Diffs>, curr) => {
     const type = getDiffType(curr)
 
     if (type === 'equal') {
-      acc.push([curr])
+      acc.push([curr]) // Push index 0
     }
 
     if (type === 'removed') {
-      acc.push([curr])
+      acc.push([curr]) // Push index 0
     }
 
     if (type === 'added') {
       if (acc.length && acc[acc.length - 1][0] && acc[acc.length - 1][0].removed) {
-        acc[acc.length - 1].push(curr)
+        acc[acc.length - 1].push(curr) // Push index 1 if index 0 has removed data in last array
       } else {
-        acc.push([curr])
+        acc.push([curr]) // Push index 0
       }
     }
 
     return acc
   }, [])
 
+  /**
+   * Set index 1 in stacked data
+   */
   diffsMap.map((diffs) => {
-    if (diffs.length > 1) return
+    if (diffs.length > 1) return // Return if has index 0, 1
 
     const type = getDiffType(diffs[0])
 
     if (type === 'added') {
-      diffs.unshift({ value: '' })
+      diffs.unshift({ value: '' }) // Set empty data
     } else if (type === 'removed') {
-      diffs.push({ value: '' })
+      diffs.push({ value: '' }) // Set empty data
     } else if (type === 'equal') {
-      diffs.push({ ...diffs[0] })
+      diffs.push({ ...diffs[0] }) // Set same data
     }
   })
 
+  /**
+   * Get lines object on the mode
+   */
   if (mode === 'split') {
     return getSplitLines(diffsMap)
   } else if (mode === 'unified') {
@@ -147,51 +179,19 @@ const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> =>
   }
 }
 
+/**
+ * Render with modified tags
+ * @param prev
+ * @param current
+ */
 const renderWords = (prev: string, current: string) => {
+  /**
+   * Set modified tags in changed words (removed -> added)
+   */
   return Diff.diffWords(prev, current).filter(word => getDiffType(word) !== 'removed').map(word => {
-    const type = getDiffType(word)
-    if (type === 'added') {
-      return `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}`
-    } else {
-      return word.value
-    }
+    return getDiffType(word) === 'added' ? `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}` : word.value
   }).join('')
 }
-
-// const renderWords = (prev: string, current: string) => {
-//   if (!document) {
-//     throw new Error('This function support client-only')
-//   }
-
-//   let prevEl: HTMLElement | null = document.createElement('div')
-//   prevEl.innerHTML = prev
-
-//   let currentEl: HTMLElement | null = document.createElement('div')
-//   currentEl.innerHTML = current
-
-//   Array.from(currentEl.children).map((node, index) => {
-//     if (prevEl?.children[index] && (prevEl.children[index].textContent !== node.textContent)) {
-//       node.innerHTML = `${MODIFIED_START_TAG}${node.textContent}${MODIFIED_CLOSE_TAG}`
-//     }
-//   })
-
-//   const code = currentEl.innerHTML
-
-//   prevEl = null
-//   currentEl = null
-
-//   return code
-
-//   // return Diff.diffWords(prev, current).filter(word => getDiffType(word) !== 'removed').map(word => {
-//   //   const type = getDiffType(word)
-
-//   //   if (type === 'added') {
-//   //     return `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}`
-//   //   } else {
-//   //     return word.value
-//   //   }
-//   // })
-// }
 
 export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, renderLines, renderWords }
 export type { Mode, Role, Change, Lines, Line }

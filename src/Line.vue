@@ -1,4 +1,5 @@
 <template>
+  <!-- split view -->
   <tr v-if="mode === 'split'" :class="`vue-diff-row-${mode}`">
     <template :key="index" v-for="(line, index) in data">
       <td class="lineNum" :class="`vue-diff-cell-${line.type}`">
@@ -7,11 +8,13 @@
       <td class="code" :class="`vue-diff-cell-${line.type}`">
         <Code
           :language="language"
-          :value="getValue(line, data, index)"
+          :code="setCode(line, data, index)"
         />
       </td>
     </template>
   </tr>
+  <!-- // split view -->
+  <!-- unified view -->
   <template v-if="mode === 'unified'">
     <tr :class="`vue-diff-row-${mode}`">
       <td class="lineNum" :class="`vue-diff-cell-${data[0].type}`">
@@ -20,11 +23,12 @@
       <td class="code" :class="`vue-diff-cell-${data[0].type}`">
         <Code
           :language="language"
-          :value="getValue(line)"
+          :code="setCode(line)"
         />
       </td>
     </tr>
   </template>
+  <!-- // unified view -->
 </template>
 
 <script lang="ts">
@@ -53,21 +57,22 @@ export default defineComponent({
     }
   },
   setup () {
-    const getValue = (line: Line, data?: Lines, index?: number) => {
+    const setCode = (line: Line, data?: Lines, index?: number) => {
       if (!line.value) return '\n'
 
-      if (!data || !line.type.match(/added|removed/)) return line.value
+      // Compare lines when data, index properties exist and has chkWords value in line property
+      if (typeof data === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
+        return line.value
+      }
 
-      // return diff words code
-      const diffIndex = index === 0 ? 1 : 0
-      const diffValue = data[diffIndex].value
+      const differ = data[index === 0 ? 1 : 0]
 
-      if (!diffValue) return line.value
+      if (!differ.value) return line.value
 
-      return renderWords(diffValue, line.value)
+      return renderWords(differ.value, line.value) // render with modified tags
     }
 
-    return { getValue }
+    return { setCode }
   }
 })
 </script>
