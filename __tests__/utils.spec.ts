@@ -1,4 +1,4 @@
-import { ref } from 'Vue'
+import { ref } from 'vue'
 import { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode } from '../src/utils'
 
 describe('Utils unit', () => {

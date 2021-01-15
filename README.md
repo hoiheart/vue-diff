@@ -2,7 +2,8 @@
 
 Vue diff viewer plugin
 
-> ⚠️ This plugin supports only Vue3
+> ⚠️ This plugin supports only Vue3  
+> Vue2 doesn't have a support plan yet.
 
 ## Table of Contents
 
@@ -10,12 +11,10 @@ Vue diff viewer plugin
 - [Features](#features)
 - [Install plugin](#install-plugin)
   * [Options](#options)
-- [Usage modal](#usage-modal)
+- [Usage diff viewer](#usage-diff-viewer)
   * [props](#props)
-    + [props.options](#propsoptions)
-  * [slot arguments](#slot-arguments)
-- [Handle global CSS](#handle-global-css)
-- [Example](#example)
+- [Custom theme](#custom-theme)
+- [Extend languages](#extend-languages)
 
 ## Introduction
 
@@ -85,7 +84,7 @@ Insert the diff component with props.
 | prev | `string` | `''` |  | Prev code |
 | current | `string` | `''` |  | Current Code |
 
-### Custom theme
+## Custom theme
 
 `vue-diff` uses the following <a href="https://github.com/highlightjs/highlight.js/tree/master/src/styles">highlight.js themes</a> and can be customized.
 

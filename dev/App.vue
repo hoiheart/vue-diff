@@ -51,7 +51,7 @@ export default defineComponent({
     const mode = ref('split')
     const languages = ref(['javascript', 'html', 'css', 'yaml'])
     const language = ref('javascript')
-    const themes = ref(['dark', 'light', 'vs2015'])
+    const themes = ref(['dark', 'light', 'custom'])
     const theme = ref('dark')
 
     const prev = ref('')
