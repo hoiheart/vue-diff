@@ -1,5 +1,5 @@
 import * as Diff from 'diff'
-import { highlight } from 'highlight.js'
+import hljs from './highlight'
 
 import type { Ref } from 'vue'
 import type { Change } from 'diff'
@@ -204,7 +204,7 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   const hasModifiedTags = code.match(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'))
 
   if (!hasModifiedTags) {
-    highlightCode.value = highlight(language, code).value
+    highlightCode.value = hljs.highlight(language, code).value
     return
   }
 
@@ -214,7 +214,7 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   let originalCode = code // original code with modified tags
   const pureCode = code.replace(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'), '') // Without modified tags
   let pureElement = document.createElement('div')
-  pureElement.innerHTML = highlight(language, pureCode).value // Highlight DOM without modified tags
+  pureElement.innerHTML = hljs.highlight(language, pureCode).value // Highlight DOM without modified tags
 
   const diffElements = (node: HTMLElement) => {
     node.childNodes.forEach(child => {

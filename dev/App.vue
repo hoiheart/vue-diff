@@ -48,10 +48,10 @@ import template from './template'
 export default defineComponent({
   setup () {
     const modes = ref(['split', 'unified'])
-    const mode = ref('unified')
-    const languages = ref(['javascript', 'html', 'css'])
+    const mode = ref('split')
+    const languages = ref(['javascript', 'html', 'css', 'yaml'])
     const language = ref('javascript')
-    const themes = ref(['dark', 'light'])
+    const themes = ref(['dark', 'light', 'vs2015'])
     const theme = ref('dark')
 
     const prev = ref('')
@@ -87,7 +87,7 @@ export default defineComponent({
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .editor {
   section {
     display: flex;
@@ -107,5 +107,11 @@ export default defineComponent({
       height: 200px;
     }
   }
+}
+
+.vue-diff-theme-custom {
+  @import 'highlight.js/scss/vs2015.scss'; // import theme
+
+  background-color: #000; // Set background color
 }
 </style>

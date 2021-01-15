@@ -3,20 +3,23 @@ const javascript1 =
   "name": "vue-diff",
   "version": "0.0.0",
   "description": "Vue diff viewer",
-  "private": true
+  "private": true,
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  }
 }`
 
 const javascript2 =
 `const b2 = {
   "name": "vue-diff",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Vue diff viewer",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
+    "test": "vue-cli-service test:unit"
     "lint": "vue-cli-service lint"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
   }
 }`
 
@@ -44,29 +47,64 @@ const html2 =
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-900">
-  <div id="app" class="p-12"></div>
+  <div id="app"></div>
   <script type="module" src="/dev/main.ts"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>`
 
 const css1 =
-`@import '../../css/style.css';
+`.vue-diff-wrapper {
+  width: 100%;
+}
 
-.vue-diff-viewer {
-  background-color: #272822;
+.vue-diff-theme-dark {
+  @import 'highlight.js/scss/vs2015.scss';
+  background-color: #000;
+}
+
+.vue-diff-theme-light {
+  @import 'highlight.js/scss/vs.scss';
+  background-color: #fff;
 }`
 
 const css2 =
-`@import 'css/style.css';
-
-div.vue-diff-viewer {
-  background-color: #666;
+`.vue-diff-wrapper {
+  overflow: hidden;
+  width: 100%;
+  border-radius: 0.3em;
 }
 
-#vue-diff-viewer {
-  display: flex;
-  display: -webkit-flex;
+.vue-diff-theme-dark {
+  @import 'highlight.js/scss/monokai.scss';
+  background-color: #272822;
+}
+
+.vue-diff-theme-light {
+  @import 'highlight.js/scss/vs.scss';
+  background-color: #fff;
 }`
+
+const yaml1 =
+`name: Release
+
+on:
+  push:
+    branches:
+      - alpha
+
+jobs:
+  # job`
+
+const yaml2 =
+`name: Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:`
 
 export default {
   javascript1,
@@ -74,5 +112,7 @@ export default {
   html1,
   html2,
   css1,
-  css2
+  css2,
+  yaml1,
+  yaml2
 }

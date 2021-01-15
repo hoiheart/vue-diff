@@ -1,33 +1,58 @@
 {
   "name": "vue-diff",
   "version": "0.0.0",
-  "private": true,
   "description": "Vue diff viewer",
+  "license": "ISC",
   "author": {
     "name": "hoiheart",
     "email": "hoiheart@gmail.com",
     "url": "https://github.com/hoiheart"
   },
+  "keywords": [
+    "Vue",
+    "VueJS",
+    "Vue diff",
+    "VueJS diff"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hoiheart/vue-diff.git"
+  },
+  "homepage": "https://github.com/hoiheart/vue-diff#readme",
+  "bugs": {
+    "url": "https://github.com/hoiheart/vue-diff/issues"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "rimraf ./dist && rollup --config",
+    "demo": "rimraf ./demo && vite build",
     "test": "vue-cli-service test:unit",
     "test:watch": "vue-cli-service test:unit --watch",
     "lint": "vue-cli-service lint"
   },
-  "dependencies": {
-    "core-js": "^3.6.5",
-    "diff": "^5.0.0",
-    "highlight.js": "^10.5.0",
+  "main": "dist/index.js",
+  "peerDependencies": {
     "vue": "^3.0.0"
   },
+  "dependencies": {
+    "diff": "^5.0.0",
+    "highlight.js": "^10.5.0",
+    "vue": "^3.0.5"
+  },
   "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.12.7",
+    "@rollup/plugin-babel": "^5.2.2",
     "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-node-resolve": "^10.0.0",
+    "@rollup/plugin-typescript": "^6.1.0",
+    "@semantic-release/git": "^9.0.0",
     "@types/diff": "^5.0.0",
+    "@types/highlight.js": "^10.1.0",
     "@types/jest": "^24.0.19",
-    "@types/prismjs": "^1.16.2",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
+    "@vitejs/plugin-vue": "^1.0.5",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-typescript": "~4.5.0",
@@ -37,6 +62,7 @@
     "@vue/eslint-config-standard": "^5.1.2",
     "@vue/eslint-config-typescript": "^5.0.2",
     "@vue/test-utils": "^2.0.0-0",
+    "core-js": "^3.6.5",
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
@@ -44,36 +70,113 @@
     "eslint-plugin-standard": "^4.0.0",
     "eslint-plugin-vue": "^7.0.0-0",
     "lint-staged": "^9.5.0",
+    "postcss": "^8.2.4",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.34.0",
+    "rollup-plugin-css-only": "^2.1.0",
+    "rollup-plugin-scss": "^2.6.1",
+    "rollup-plugin-typescript2": "^0.29.0",
+    "rollup-plugin-vue": "^6.0.0",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "typescript": "~3.9.3",
-    "vite": "^1.0.0-rc.13",
+    "vite": "^2.0.0-beta.29",
     "vue-jest": "^5.0.0-0"
   },
-  "_id": "vue-diff@0.0.0",
-  "bugs": {
-    "url": "https://github.com/hoiheart/vue-diff/issues"
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
-  },
-  "homepage": "https://github.com/hoiheart/vue-diff#readme",
-  "keywords": [
-    "Vue",
-    "VueJS",
-    "Vue diff",
-    "VueJS diff"
-  ],
-  "license": "ISC",
   "lint-staged": {
     "*.{js,jsx,vue,ts,tsx}": [
       "vue-cli-service lint",
       "git add"
     ]
   },
-  "readme": "ERROR: No README data found!",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/hoiheart/vue-diff.git"
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "release": {
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "releaseRules": [
+            {
+              "type": "refactor",
+              "release": "patch"
+            },
+            {
+              "type": "perf",
+              "release": "patch"
+            },
+            {
+              "type": "docs",
+              "release": "patch"
+            },
+            {
+              "type": "style",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "chore",
+                "hidden": true
+              },
+              {
+                "type": "docs",
+                "hidden": false,
+                "section": "Docs"
+              },
+              {
+                "type": "style",
+                "hidden": false,
+                "section": "Style"
+              },
+              {
+                "type": "refactor",
+                "hidden": false,
+                "section": "Refactor"
+              },
+              {
+                "type": "perf",
+                "hidden": false,
+                "section": "Perfomance"
+              },
+              {
+                "type": "test",
+                "hidden": true
+              }
+            ]
+          }
+        }
+      ],
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "dist",
+            "demo",
+            "package.json",
+            "package-lock.json"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ],
+      "@semantic-release/github"
+    ]
   }
 }

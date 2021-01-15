@@ -1,4 +1,5 @@
 import Diff from './Diff.vue'
+import hljs from './highlight'
 import './style.scss'
 
 import type { App } from 'vue'
@@ -14,5 +15,6 @@ export default {
     } = options as PluginOptions
 
     app.component(componentName, Diff)
-  }
+  },
+  hljs
 }

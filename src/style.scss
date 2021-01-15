@@ -1,7 +1,7 @@
 .vue-diff-wrapper {
-  display: flex;
-  justify-content: space-between;
+  overflow: hidden;
   width: 100%;
+  border-radius: 0.3em;
 }
 
 .vue-diff-theme-dark {
@@ -17,9 +17,9 @@
 }
 
 .vue-diff-viewer {
+  overflow: hidden;
   width: 100%;
   padding: 1em 0;
-  border-radius: 0.3em;
 
   > table {
     width: 100%;
