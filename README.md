@@ -21,13 +21,13 @@ Vue diff viewer plugin
 <img src="https://user-images.githubusercontent.com/25652218/104695609-60533c80-5750-11eb-85dd-0e7d0d79d5ac.png" alt="screenshot" style="max-width:100%;">
 
 You can see the difference between the two codes with the `vue-diff` plugin.  
-This plugin dependent on <a href="https://github.com/kpdecker/jsdiff">diff</a> and <a href="https://github.com/highlightjs/highlight.js/">highlight.js</a>, shows similar results to other diff viewers (e.g., Github Desktop).
-Please see the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target="_blank" style="font-size: 1.2em; text-decoration: underline;">demo</a>
+This plugin dependent on <a href="https://github.com/kpdecker/jsdiff">diff</a> and <a href="https://github.com/highlightjs/highlight.js/">highlight.js</a>, shows similar results to other diff viewers (e.g., Github Desktop).  
+Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target="_blank" style="font-size: 1.2em; text-decoration: underline;">demo</a>
 
 ## Features
 
 * [x] Support split / unified mode
-* [x] Support some languages and can be extended
+* [x] Support multiple languages and can be extended
 * [X] Support two themes (dark / light) and can be customized
 * [ ] Support IE11 (IE 11 support for Vue@3 is still pending)
 
@@ -56,7 +56,7 @@ app.use(VueDiff, {
 
 | name | type | detault | description |
 |- | - | - | - |
-| componentName | `string` | `'Diff'` | Global diff component name |
+| componentName | `string` | `Diff` | Global diff component name |
 
 ## Usage diff viewer
 
@@ -119,13 +119,19 @@ npm install highlight.js
 
 `vue-diff` supports the following languages and can be extended through <a href="https://github.com/highlightjs/highlight.js/#es6-modules">highlight.js language registration.</a>
 
+### Default supported languages and values
+
 * `css`
-* `xml`
-* `markdown`
-* `javascript`
+* `xml`: `xml`, `html`, `xhtml`, `rss`, `atom`, `xjb`, `xsd`, `xsl`, `plist`, `svg`
+* `markdown`: `markdown`, `md`, `mkdown`, `mkd`
+* `javascript`: `javascript`, `js`, `jsx`
 * `json`
-* `plaintext`
-* `typescript`
+* `plaintext`: `plaintext`, `txt`, `text`
+* `typescript`: `typescript`, `ts`
+
+```bash
+npm install highlight.js
+```
 
 ```ts
 import VueDiff from 'vue-diff'
@@ -138,3 +144,5 @@ VueDiff.hljs.registerLanguage('yaml', yaml)
 
 app.use(VueDiff)
 ```
+
+> <a href="https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md">Check supported languages of Highlight.js</a>
