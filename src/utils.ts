@@ -1,22 +1,29 @@
-import * as Diff from 'diff'
+import { diff_match_patch as DiffMatchPatch } from 'diff-match-patch'
 import hljs from './highlight'
 
 import type { Ref } from 'vue'
-import type { Change } from 'diff'
+import type { Diff } from 'diff-match-patch'
 
 type Mode = 'split' | 'unified'
 type Theme = 'dark' | 'light' | 'custom'
 type Role = 'prev' | 'current' | 'unified'
 
+enum Type {
+  removed = -1,
+  equal = 0,
+  added = 1,
+  disabled = 2
+}
+
 interface Line {
-  type: 'added' | 'removed' | 'equal' | 'disabled';
+  type: string;
   lineNum?: number;
   value?: string;
   chkWords?: boolean;
 }
 
 type Lines = Array<Line>
-type Diffs = Array<Change>
+type Diffs = Array<Diff>
 
 const MODIFIED_START_TAG = '<vue-diff-modified>'
 const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
@@ -25,9 +32,9 @@ const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
  * Get diff type
  * @param diff
  */
-const getDiffType = (diff: Change) => {
-  if (!diff.count) return 'disabled'
-  return diff.added ? 'added' : diff.removed ? 'removed' : 'equal'
+const getDiffType = (type: Type) => {
+  if (!Type[type]) return 'disabled'
+  return Type[type]
 }
 
 /**
@@ -42,28 +49,28 @@ const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
   }
 
   diffsMap.map((diffs) => {
-    const prevLines = diffs[0].value.replace(/\n$/, '').split('\n')
-    const currentLines = diffs[1].value.replace(/\n$/, '').split('\n')
+    const prevLines = diffs[0][1].replace(/\n$/, '').split('\n')
+    const currentLines = diffs[1][1].replace(/\n$/, '').split('\n')
     const loopCount = Math.max(prevLines.length, currentLines.length)
 
     for (let i = 0; i < loopCount; i++) {
-      const hasPrevLine = getDiffType(diffs[0]) !== 'disabled'
-      const hasCurrentLine = getDiffType(diffs[1]) !== 'disabled'
+      const hasPrevLine = getDiffType(diffs[0][0]) !== 'disabled' && typeof prevLines[i] !== 'undefined'
+      const hasCurrentLine = getDiffType(diffs[1][0]) !== 'disabled' && typeof currentLines[i] !== 'undefined'
 
       if (hasPrevLine) lineNum.prev = lineNum.prev + 1
       if (hasCurrentLine) lineNum.current = lineNum.current + 1
 
-      const chkWords = Boolean(diffs[0].count === diffs[1].count && getDiffType(diffs[0]).match(/added|removed/) && getDiffType(diffs[1]).match(/added|removed/))
+      const chkWords = Boolean(getDiffType(diffs[0][0]).match(/added|removed/) && getDiffType(diffs[1][0]).match(/added|removed/))
 
       result.push([
         {
-          type: getDiffType(diffs[0]),
+          type: hasPrevLine ? getDiffType(diffs[0][0]) : 'disabled',
           lineNum: hasPrevLine ? lineNum.prev : undefined,
           value: hasPrevLine ? prevLines[i] : undefined,
           chkWords
         },
         {
-          type: getDiffType(diffs[1]),
+          type: hasCurrentLine ? getDiffType(diffs[1][0]) : 'disabled',
           lineNum: hasCurrentLine ? lineNum.current : undefined,
           value: hasCurrentLine ? currentLines[i] : undefined,
           chkWords
@@ -72,7 +79,7 @@ const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
     }
   })
 
-  return result
+  return result.slice(0, 100) // todo debounce
 }
 
 /**
@@ -84,17 +91,17 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
   let lineNum = 0
 
   diffsMap.map((diffs) => {
-    const prevLines = diffs[0].value.replace(/\n$/, '').split('\n')
-    const currentLines = diffs[1].value.replace(/\n$/, '').split('\n')
+    const prevLines = diffs[0][1].replace(/\n$/, '').split('\n')
+    const currentLines = diffs[1][1].replace(/\n$/, '').split('\n')
 
     prevLines.map(value => {
-      const type = getDiffType(diffs[0])
+      const type = getDiffType(diffs[0][0])
 
       if (type !== 'removed') return
 
       result.push([
         {
-          type: getDiffType(diffs[0]),
+          type: getDiffType(diffs[0][0]),
           lineNum: undefined,
           value: value
         }
@@ -102,7 +109,7 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
     })
 
     currentLines.map(value => {
-      const type = getDiffType(diffs[1])
+      const type = getDiffType(diffs[1][0])
 
       if (type === 'disabled') return
 
@@ -110,7 +117,7 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
 
       result.push([
         {
-          type: getDiffType(diffs[1]),
+          type: getDiffType(diffs[1][0]),
           lineNum,
           value: value
         }
@@ -118,7 +125,7 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
     })
   })
 
-  return result
+  return result.slice(0, 100) // todo debounce
 }
 
 /**
@@ -128,11 +135,22 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
  * @param current
  */
 const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> => {
+  function diffLines (prev: string, current: string) {
+    const dmp = new DiffMatchPatch()
+    const a = dmp.diff_linesToChars_(prev, current)
+    const linePrev = a.chars1
+    const lineCurrent = a.chars2
+    const lineArray = a.lineArray
+    const diffs = dmp.diff_main(linePrev, lineCurrent, false)
+    dmp.diff_charsToLines_(diffs, lineArray)
+    return diffs
+  }
+
   /**
    * stacked prev, current data
    */
-  const diffsMap = Diff.diffLines(prev, current).reduce((acc: Array<Diffs>, curr) => {
-    const type = getDiffType(curr)
+  const diffsMap = diffLines(prev, current).reduce((acc: Array<Diffs>, curr) => {
+    const type = getDiffType(curr[0])
 
     if (type === 'equal') {
       acc.push([curr]) // Push index 0
@@ -143,7 +161,8 @@ const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> =>
     }
 
     if (type === 'added') {
-      if (acc.length && acc[acc.length - 1][0] && acc[acc.length - 1][0].removed) {
+      const prev = acc.length && acc[acc.length - 1][0] ? acc[acc.length - 1][0] : null
+      if (prev && getDiffType(prev[0]) === 'removed') {
         acc[acc.length - 1].push(curr) // Push index 1 if index 0 has removed data in last array
       } else {
         acc.push([curr]) // Push index 0
@@ -159,14 +178,14 @@ const renderLines = (mode: Mode, prev: string, current: string): Array<Lines> =>
   diffsMap.map((diffs) => {
     if (diffs.length > 1) return // Return if has index 0, 1
 
-    const type = getDiffType(diffs[0])
+    const type = getDiffType(diffs[0][0])
 
     if (type === 'added') {
-      diffs.unshift({ value: '' }) // Set empty data
+      diffs.unshift([2, '']) // Set empty data
     } else if (type === 'removed') {
-      diffs.push({ value: '' }) // Set empty data
+      diffs.push([2, '']) // Set empty data
     } else if (type === 'equal') {
-      diffs.push({ ...diffs[0] }) // Set same data
+      diffs.push([...diffs[0]]) // Set same data
     }
   })
 
@@ -191,8 +210,11 @@ const renderWords = (prev: string, current: string) => {
   /**
    * Set modified tags in changed words (removed -> added)
    */
-  return Diff.diffWords(prev, current).filter(word => getDiffType(word) !== 'removed').map(word => {
-    return getDiffType(word) === 'added' ? `${MODIFIED_START_TAG}${word.value}${MODIFIED_CLOSE_TAG}` : word.value
+  const dmp = new DiffMatchPatch()
+  const diff = dmp.diff_main(prev, current)
+  dmp.diff_cleanupSemantic(diff)
+  return diff.filter(result => getDiffType(result[0]) !== 'removed').map(result => {
+    return getDiffType(result[0]) === 'added' ? `${MODIFIED_START_TAG}${result[1]}${MODIFIED_CLOSE_TAG}` : result[1]
   }).join('')
 }
 
@@ -269,4 +291,4 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
 }
 
 export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode }
-export type { Mode, Theme, Role, Change, Lines, Line }
+export type { Mode, Theme, Role, Lines, Line }
