@@ -57,7 +57,13 @@ export default defineComponent({
       () => props.prev,
       () => props.current
     ], () => {
-      lines.value = renderLines(props.mode, props.prev, props.current)
+      const render = renderLines(props.mode, props.prev, props.current)
+
+      if (render.length > 1000) {
+        console.warn('Comparison of many lines is not recommended because rendering delays occur.')
+      }
+
+      lines.value = render
     }, { immediate: true })
 
     return { lines }

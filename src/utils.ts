@@ -79,7 +79,7 @@ const getSplitLines = (diffsMap: Array<Diffs>): Array<Lines> => {
     }
   })
 
-  return result.slice(0, 100) // todo debounce
+  return result
 }
 
 /**
@@ -125,7 +125,7 @@ const getUnifiedLines = (diffsMap: Array<Diffs>): Array<Lines> => {
     })
   })
 
-  return result.slice(0, 100) // todo debounce
+  return result
 }
 
 /**
