@@ -1,23 +1,29 @@
 import type { Ref } from 'vue';
-import type { Change } from 'diff';
+import type { Diff } from 'diff-match-patch';
 declare type Mode = 'split' | 'unified';
 declare type Theme = 'dark' | 'light' | 'custom';
 declare type Role = 'prev' | 'current' | 'unified';
+declare enum Type {
+    removed = -1,
+    equal = 0,
+    added = 1,
+    disabled = 2
+}
 interface Line {
-    type: 'added' | 'removed' | 'equal' | 'disabled';
+    type: string;
     lineNum?: number;
     value?: string;
     chkWords?: boolean;
 }
 declare type Lines = Array<Line>;
-declare type Diffs = Array<Change>;
+declare type Diffs = Array<Diff>;
 declare const MODIFIED_START_TAG = "<vue-diff-modified>";
 declare const MODIFIED_CLOSE_TAG = "</vue-diff-modified>";
 /**
  * Get diff type
  * @param diff
  */
-declare const getDiffType: (diff: Change) => "added" | "removed" | "equal" | "disabled";
+declare const getDiffType: (type: Type) => string;
 /**
  * Get lines object on the split mode
  * @param diffsMap
@@ -51,4 +57,4 @@ declare const setHighlightCode: ({ highlightCode, language, code }: {
     code: string;
 }) => void;
 export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode };
-export type { Mode, Theme, Role, Change, Lines, Line };
+export type { Mode, Theme, Role, Lines, Line };

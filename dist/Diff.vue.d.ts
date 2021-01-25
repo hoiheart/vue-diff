@@ -23,7 +23,7 @@ declare const _default: import("vue").DefineComponent<{
     };
 }, {
     lines: import("vue").Ref<{
-        type: "added" | "removed" | "equal" | "disabled";
+        type: string;
         lineNum?: number | undefined;
         value?: string | undefined;
         chkWords?: boolean | undefined;
