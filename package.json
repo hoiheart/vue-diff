@@ -35,7 +35,7 @@
     "vue": "^3.0.0"
   },
   "dependencies": {
-    "diff": "^5.0.0",
+    "diff-match-patch": "^1.0.5",
     "highlight.js": "^10.5.0"
   },
   "devDependencies": {
@@ -46,7 +46,7 @@
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@rollup/plugin-typescript": "^6.1.0",
     "@semantic-release/git": "^9.0.0",
-    "@types/diff": "^5.0.0",
+    "@types/diff-match-patch": "^1.0.32",
     "@types/highlight.js": "^10.1.0",
     "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
