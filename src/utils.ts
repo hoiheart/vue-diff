@@ -20,6 +20,7 @@ interface Line {
   lineNum?: number;
   value?: string;
   chkWords?: boolean;
+  [key: string]: any;
 }
 
 type Lines = Array<Line>

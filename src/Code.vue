@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch } from 'vue'
+import { defineComponent, ref, onMounted, watch, nextTick } from 'vue'
 import { setHighlightCode } from './utils'
 
 export default defineComponent({
@@ -17,7 +17,8 @@ export default defineComponent({
       required: true
     }
   },
-  setup (props) {
+  emits: ['rendered'],
+  setup (props, { emit }) {
     const highlightCode = ref('')
 
     onMounted(() => {
@@ -27,6 +28,8 @@ export default defineComponent({
           language: props.language,
           code: props.code
         })
+
+        nextTick(() => emit('rendered'))
       }, { immediate: true })
     })
 

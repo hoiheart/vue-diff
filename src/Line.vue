@@ -1,48 +1,68 @@
 <template>
-  <!-- split view -->
-  <tr v-if="mode === 'split'" :class="`vue-diff-row-${mode}`">
-    <template :key="index" v-for="(line, index) in data">
-      <td class="lineNum" :class="`vue-diff-cell-${line.type}`">
-        {{ line.lineNum }}
-      </td>
-      <td class="code" :class="`vue-diff-cell-${line.type}`">
-        <Code
-          :language="language"
-          :code="setCode(line, data, index)"
-        />
-      </td>
+  <div
+    ref="line"
+    class="vue-diff-row"
+    :class="`vue-diff-row-${mode}`"
+    :style="virtualScroll ? {
+      position: 'absoltue',
+      minHeight: virtualScroll.minHeight + 'px'
+    } : undefined">
+    <!-- split view -->
+    <template v-if="mode === 'split'">
+      <template :key="index" v-for="(line, index) in data.render">
+        <div class="lineNum" :class="`vue-diff-cell-${line.type}`">
+          {{ line.lineNum }}
+        </div>
+        <div class="code" :class="`vue-diff-cell-${line.type}`">
+          <Code
+            :language="language"
+            :code="setCode(line, data.render, index)"
+            @rendered="rendered"
+          />
+        </div>
+      </template>
     </template>
-  </tr>
-  <!-- // split view -->
-  <!-- unified view -->
-  <template v-if="mode === 'unified'">
-    <tr :class="`vue-diff-row-${mode}`">
-      <td class="lineNum" :class="`vue-diff-cell-${data[0].type}`">
-        {{ data[0].lineNum }}
-      </td>
-      <td class="code" :class="`vue-diff-cell-${data[0].type}`">
+    <!-- // split view -->
+    <!-- unified view -->
+    <template v-if="mode === 'unified'">
+      <div class="lineNum" :class="`vue-diff-cell-${data.render[0].type}`">
+        {{ data.render[0].lineNum }}
+      </div>
+      <div class="code" :class="`vue-diff-cell-${data.render[0].type}`">
         <Code
           :language="language"
-          :code="setCode(data[0])"
+          :code="setCode(data.render[0])"
+          @rendered="rendered"
         />
-      </td>
-    </tr>
-  </template>
-  <!-- // unified view -->
+      </div>
+    </template>
+    <!-- // unified view -->
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent, PropType, watch, ref } from 'vue'
 import Code from './Code.vue'
 import { renderWords } from './utils'
 
 import type { Mode, Lines, Line } from './utils'
+
+interface Data {
+  key: number;
+  render: Lines;
+  top?: number;
+  height?: number;
+}
 
 export default defineComponent({
   components: {
     Code
   },
   props: {
+    index: {
+      type: Number,
+      required: true
+    },
     mode: {
       type: String as PropType<Mode>,
       required: true
@@ -54,9 +74,13 @@ export default defineComponent({
     data: {
       type: Object as PropType<Lines>,
       required: true
-    }
+    },
+    virtualScroll: {},
+    lineInfo: {}
   },
-  setup () {
+  emits: ['setLineHeight'],
+  setup (props, { emit }) {
+    const line = ref<null|HTMLElement>(null)
     const setCode = (line: Line, data?: Lines, index?: number) => {
       if (!line.value) return '\n'
 
@@ -72,7 +96,12 @@ export default defineComponent({
       return renderWords(differ.value, line.value) // render with modified tags
     }
 
-    return { setCode }
+    const rendered = () => {
+      if (!line.value) return
+      emit('setLineHeight', props.index, line.value.offsetHeight)
+    }
+
+    return { line, setCode, rendered }
   }
 })
 </script>

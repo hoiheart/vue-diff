@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "diff-match-patch": "^1.0.5",
-    "highlight.js": "^10.5.0"
+    "highlight.js": "^10.5.0",
+    "lodash-es": "^4.17.21"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.12.1",
@@ -49,6 +50,7 @@
     "@types/diff-match-patch": "^1.0.32",
     "@types/highlight.js": "^10.1.0",
     "@types/jest": "^24.0.19",
+    "@types/lodash-es": "^4.17.4",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
     "@vitejs/plugin-vue": "^1.0.5",

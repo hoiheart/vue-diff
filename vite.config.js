@@ -8,6 +8,7 @@ export default {
   },
   optimizeDeps: {
     include: [
+      'lodash-es/throttle',
       'highlight.js/lib/core',
       'highlight.js/lib/languages/css',
       'highlight.js/lib/languages/xml',

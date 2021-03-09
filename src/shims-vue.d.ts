@@ -1,3 +1,4 @@
+declare module 'lodash-es/throttle'
 declare module 'highlight.js/lib/core'
 declare module 'highlight.js/lib/languages/css'
 declare module 'highlight.js/lib/languages/xml'

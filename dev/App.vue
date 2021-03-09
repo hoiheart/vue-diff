@@ -35,6 +35,7 @@
         :language="language"
         :prev="prev"
         :current="current"
+        :virtual-scroll="{ height: 500, lineMinHeight: 24 }"
       />
     </section>
   </div>
