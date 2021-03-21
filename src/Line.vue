@@ -4,19 +4,22 @@
     class="vue-diff-row"
     :class="`vue-diff-row-${mode}`"
     :style="virtualScroll ? {
-      position: 'absoltue',
-      minHeight: virtualScroll.minHeight + 'px'
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      transform: `translate3d(0, ${meta.top}px, 0)`,
+      minHeight: virtualScroll.lineMinHeight + 'px'
     } : undefined">
     <!-- split view -->
     <template v-if="mode === 'split'">
-      <template :key="index" v-for="(line, index) in data.render">
+      <template :key="index" v-for="(line, index) in render">
         <div class="lineNum" :class="`vue-diff-cell-${line.type}`">
           {{ line.lineNum }}
         </div>
         <div class="code" :class="`vue-diff-cell-${line.type}`">
           <Code
             :language="language"
-            :code="setCode(line, data.render, index)"
+            :code="setCode(line, render, index)"
             @rendered="rendered"
           />
         </div>
@@ -25,13 +28,13 @@
     <!-- // split view -->
     <!-- unified view -->
     <template v-if="mode === 'unified'">
-      <div class="lineNum" :class="`vue-diff-cell-${data.render[0].type}`">
-        {{ data.render[0].lineNum }}
+      <div class="lineNum" :class="`vue-diff-cell-${render[0].type}`">
+        {{ render[0].lineNum }}
       </div>
-      <div class="code" :class="`vue-diff-cell-${data.render[0].type}`">
+      <div class="code" :class="`vue-diff-cell-${render[0].type}`">
         <Code
           :language="language"
-          :code="setCode(data.render[0])"
+          :code="setCode(render[0])"
           @rendered="rendered"
         />
       </div>
@@ -41,28 +44,17 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, watch, ref } from 'vue'
+import { defineComponent, PropType, ref } from 'vue'
 import Code from './Code.vue'
 import { renderWords } from './utils'
 
-import type { Mode, Lines, Line } from './utils'
-
-interface Data {
-  key: number;
-  render: Lines;
-  top?: number;
-  height?: number;
-}
+import type { Meta, Mode, Lines, Line } from './types'
 
 export default defineComponent({
   components: {
     Code
   },
   props: {
-    index: {
-      type: Number,
-      required: true
-    },
     mode: {
       type: String as PropType<Mode>,
       required: true
@@ -71,25 +63,27 @@ export default defineComponent({
       type: String,
       required: true
     },
-    data: {
+    meta: {
+      type: Object as PropType<Meta>,
+      required: true
+    },
+    render: {
       type: Object as PropType<Lines>,
       required: true
     },
-    virtualScroll: {},
-    lineInfo: {}
+    virtualScroll: {}
   },
-  emits: ['setLineHeight'],
   setup (props, { emit }) {
     const line = ref<null|HTMLElement>(null)
-    const setCode = (line: Line, data?: Lines, index?: number) => {
+    const setCode = (line: Line, render?: Lines, index?: number) => {
       if (!line.value) return '\n'
 
-      // Compare lines when data, index properties exist and has chkWords value in line property
-      if (typeof data === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
+      // Compare lines when render, index properties exist and has chkWords value in line property
+      if (typeof render === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
         return line.value
       }
 
-      const differ = data[index === 0 ? 1 : 0]
+      const differ = render[index === 0 ? 1 : 0]
 
       if (!differ.value) return line.value
 
@@ -98,7 +92,7 @@ export default defineComponent({
 
     const rendered = () => {
       if (!line.value) return
-      emit('setLineHeight', props.index, line.value.offsetHeight)
+      emit('setLineHeight', props.meta.index, line.value.offsetHeight)
     }
 
     return { line, setCode, rendered }

@@ -22,7 +22,7 @@ export default defineComponent({
     const highlightCode = ref('')
 
     onMounted(() => {
-      watch(() => props.code, () => {
+      watch([() => props.language, () => props.code], () => {
         setHighlightCode({
           highlightCode,
           language: props.language,

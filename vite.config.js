@@ -9,6 +9,7 @@ export default {
   optimizeDeps: {
     include: [
       'lodash-es/throttle',
+      'lodash-es/debounce',
       'highlight.js/lib/core',
       'highlight.js/lib/languages/css',
       'highlight.js/lib/languages/xml',

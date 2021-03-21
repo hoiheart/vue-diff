@@ -2,40 +2,25 @@ import { diff_match_patch as DiffMatchPatch } from 'diff-match-patch'
 import hljs from './highlight'
 
 import type { Ref } from 'vue'
-import type { Diff } from 'diff-match-patch'
+import type { Diffs, Lines, Mode } from './types'
 
-type Mode = 'split' | 'unified'
-type Theme = 'dark' | 'light' | 'custom'
-type Role = 'prev' | 'current' | 'unified'
+const MODIFIED_START_TAG = '<vue-diff-modified>'
+const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
 
-enum Type {
+enum DiffType {
   removed = -1,
   equal = 0,
   added = 1,
   disabled = 2
 }
 
-interface Line {
-  type: string;
-  lineNum?: number;
-  value?: string;
-  chkWords?: boolean;
-  [key: string]: any;
-}
-
-type Lines = Array<Line>
-type Diffs = Array<Diff>
-
-const MODIFIED_START_TAG = '<vue-diff-modified>'
-const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
-
 /**
  * Get diff type
  * @param diff
  */
-const getDiffType = (type: Type) => {
-  if (!Type[type]) return 'disabled'
-  return Type[type]
+const getDiffType = (type: DiffType) => {
+  if (!DiffType[type]) return 'disabled'
+  return DiffType[type]
 }
 
 /**
@@ -292,4 +277,3 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
 }
 
 export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode }
-export type { Mode, Theme, Role, Lines, Line }

@@ -6,21 +6,21 @@
     <div
       ref="viewer"
       class="vue-diff-viewer"
-      :style="{ height: viewerHeight ? viewerHeight + 'px' : undefined }"
+      :style="{ height: scrollOptions ? scrollOptions.height + 'px' : undefined }"
     >
       <div
         class="vue-diff-viewer-inner"
-        :style="{ minHeight: innerMinHeight ? innerMinHeight + 'px' : undefined }"
+        :style="{ minHeight: minHeight ? minHeight + 'px' : undefined }"
       >
         <Line
+          v-for="(data, index) in visible"
           :key="index"
-          v-for="(data, index) in visibleData"
-          :index="index"
           :mode="mode"
           :language="language"
-          :data="data"
-          :virtualScroll="virtualScroll"
-          @set-line-height="setLineHeight"
+          :meta="meta[data.index]"
+          :render="render[data.index]"
+          :virtualScroll="scrollOptions"
+          @setLineHeight="setLineHeight"
         />
       </div>
     </div>
@@ -28,24 +28,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, watch, onMounted, onBeforeUnmount, computed, readonly, toRaw } from 'vue'
-import throttle from 'lodash-es/throttle'
-import { renderLines, renderWords } from './utils'
+import {
+  computed,
+  defineComponent,
+  onMounted,
+  ref,
+  watch
+} from 'vue'
+import debounce from 'lodash-es/debounce'
+import { useVirtualScroll } from './hooks'
+import { renderLines } from './utils'
 import Line from './Line.vue'
 
-import type { Mode, Theme, Lines } from './utils'
-
-interface VirtualScroll {
-  height?: number;
-  lineMinHeight?: number;
-}
-
-interface Data {
-  key: number;
-  render: Lines;
-  top?: number;
-  height?: number;
-}
+import type { PropType } from 'vue'
+import type { Meta, VirtualScroll, Mode, Theme, Lines } from './types'
 
 export default defineComponent({
   components: {
@@ -72,101 +68,71 @@ export default defineComponent({
       type: String,
       default: ''
     },
+    inputDelay: {
+      type: Number,
+      default: 0
+    },
     virtualScroll: {
-      type: false || Object as PropType<VirtualScroll>,
+      type: [Boolean, Object] as PropType<boolean|VirtualScroll>,
       default: false
     }
   },
   setup (props) {
     const viewer = ref<null|HTMLElement>(null)
-    const source = ref<Array<Data>>([])
-    const visibleData = ref<Array<Data>>([])
-    const heightList = ref<Array<number>>([])
-
-    const viewerHeight = computed(() => {
-      if (!props.virtualScroll) return false
-      return props.virtualScroll.height || 500
+    const meta = ref<Array<Meta>>([])
+    const render = ref<Array<Lines>>([])
+    const visible = computed(() => meta.value.filter(item => item.visible))
+    const { minHeight, scrollOptions, setMeta } = useVirtualScroll({
+      meta,
+      viewer,
+      virtualScroll: props.virtualScroll,
+      render
     })
 
-    const innerMinHeight = computed(() => {
-      if (!props.virtualScroll) return false
-      return heightList.value.reduce((acc, curr) => acc + curr, 0)
-    })
-
-    const getVisibleData = () => {
-      if (!viewer.value || !viewerHeight.value) return []
-
-      const result: Data[] = []
-      const start = viewer.value.scrollTop - viewerHeight.value
-      const end = viewer.value.scrollTop + viewerHeight.value * 2
-
-      heightList.value.reduce((acc, curr, index: number) => {
-        if (acc >= start && acc <= end) {
-          result.push({
-            key: index,
-            render: source.value[index].render,
-            top: acc,
-            height: 24
-          })
+    const setData = () => {
+      render.value = renderLines(props.mode, props.prev, props.current)
+      meta.value.splice(render.value.length)
+      render.value.map((v, index: number) => {
+        const item = meta.value[index]
+        meta.value[index] = {
+          index,
+          visible: item?.visible || !props.virtualScroll,
+          top: item?.top || undefined,
+          height: item?.height || 24
         }
-
-        return acc + curr
-      }, 0)
-
-      return result
-    }
-
-    const handleScroll = () => {
-      visibleData.value = getVisibleData()
-    }
-
-    const setLineHeight = (index: number, height: number) => {
-      const item = source.value.find(item => item.key === index)
-      if (item) {
-        item.height = height
-      }
+      })
+      setMeta()
     }
 
     onMounted(() => {
-      if (!viewer.value) return
-      viewer.value.addEventListener('scroll', throttle(handleScroll, 500))
-
-      watch([
-        () => props.mode,
-        () => props.prev,
-        () => props.current
-      ], () => {
-        source.value = renderLines(props.mode, props.prev, props.current).map((render, index) => {
-          return {
-            key: index,
-            render,
-            height: 24
-          }
-        })
-
-        if (!props.virtualScroll) {
-          if (source.value.length > 500) {
-            console.warn('If there are many lines, please use virtualScroll property.')
-          }
-
-          visibleData.value = source.value
-        } else {
-          visibleData.value = getVisibleData()
+      watch(
+        [
+          () => props.mode,
+          () => props.prev,
+          () => props.current
+        ],
+        debounce(setData, props.inputDelay),
+        {
+          immediate: true,
+          deep: true
         }
-      }, { immediate: true })
+      )
     })
 
-    onBeforeUnmount(() => {
-      if (!viewer.value) return
-      viewer.value.removeEventListener('scroll', throttle(handleScroll, 500))
-    })
+    const setLineHeight = (index: number, height: number) => {
+      if (meta.value[index]) {
+        meta.value[index].height = height
+      }
+    }
 
     return {
-      visibleData,
+      meta,
+      minHeight,
+      render,
+      scrollOptions,
+      setLineHeight,
       viewer,
-      viewerHeight,
-      innerMinHeight,
-      setLineHeight
+      visible
     }
   }
 })

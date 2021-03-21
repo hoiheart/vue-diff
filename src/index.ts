@@ -3,10 +3,7 @@ import hljs from './highlight'
 import './style.scss'
 
 import type { App } from 'vue'
-
-interface PluginOptions {
-  componentName: string;
-}
+import type { PluginOptions } from './types'
 
 export default {
   install: (app: App, options = {}) => {

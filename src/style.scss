@@ -23,8 +23,14 @@
   line-height: 1.5;
   font-size: 16px;
 
+  .vue-diff-viewer-inner {
+    position: relative;
+    width: 100%;
+  }
+
   .vue-diff-row {
     display: flex;
+    width: 100%;
 
     > div {
       padding: 0 0.5em;
