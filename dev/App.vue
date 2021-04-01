@@ -38,7 +38,7 @@
         :language="selected.language"
         :prev="prev"
         :current="current"
-        :input-delay="150"
+        :input-delay="0"
         :virtual-scroll="{ height: 500, lineMinHeight: 24, scrollDelay: 250 }"
       />
     </section>
