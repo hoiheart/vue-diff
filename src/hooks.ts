@@ -20,38 +20,37 @@ export const useRender = (props: Props, viewer: Ref<null|HTMLElement>, scrollOpt
   const meta = ref<Array<Meta>>([])
   const visible = computed(() => meta.value.filter(item => item.visible))
 
-  // debouncedWatch(
-  //   [() => props.mode, () => props.prev, () => props.current, () => props.inputDelay],
-  //   () => { console.log('changed!') },
-  //   { debounce: props.inputDelay }
-  // )
+  const setRender = () => {
+    const result = renderLines(props.mode, props.prev, props.current)
+    render.value = result
+    meta.value.splice(render.value.length)
 
-  watch(
-    [() => props.mode, () => props.prev, () => props.current],
-    () => {
-      const result = renderLines(props.mode, props.prev, props.current)
-      render.value = result
-      meta.value.splice(render.value.length)
+    render.value.map((v, index: number) => {
+      const item = meta.value[index]
 
-      render.value.map((v, index: number) => {
-        const item = meta.value[index]
-
-        if (scrollOptions.value) {
-          meta.value[index] = {
-            index,
-            visible: item?.visible || false,
-            top: item?.top || undefined,
-            height: item?.height || scrollOptions.value.lineMinHeight
-          }
-        } else {
-          meta.value[index] = {
-            index,
-            visible: true
-          }
+      if (scrollOptions.value) {
+        meta.value[index] = {
+          index,
+          visible: item?.visible || false,
+          top: item?.top || undefined,
+          height: item?.height || scrollOptions.value.lineMinHeight
         }
-      })
-    },
-    { immediate: true }
+      } else {
+        meta.value[index] = {
+          index,
+          visible: true
+        }
+      }
+    })
+  }
+
+  debouncedWatch(
+    [() => props.mode, () => props.prev, () => props.current],
+    setRender,
+    {
+      debounce: props.inputDelay,
+      immediate: true
+    }
   )
 
   return {
@@ -94,11 +93,14 @@ export const useVirtualScroll = (props: Props, viewer: Ref<null|HTMLElement>, sc
     if (!scrollOptions.value) return
     viewer.value?.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.scrollDelay))
 
-    // debouncedWatch(
-    //   [() => props.mode, () => props.prev, () => props.current, () => props.inputDelay],
-    //   () => { console.log('changed!') },
-    //   { debounce: props.inputDelay }
-    // )
+    debouncedWatch(
+      [() => props.mode, () => props.prev, () => props.current],
+      () => nextTick(setMeta),
+      {
+        debounce: props.inputDelay,
+        immediate: true
+      }
+    )
 
     watch(
       [() => props.mode, () => props.prev, () => props.current],
