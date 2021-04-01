@@ -224,6 +224,9 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   let pureElement = document.createElement('div')
   pureElement.innerHTML = hljs.highlight(language, pureCode).value // Highlight DOM without modified tags
 
+  // Modified span is created per highlight operator and causes it to continue
+  let innerModifiedTag = false
+
   const diffElements = (node: HTMLElement) => {
     node.childNodes.forEach(child => {
       if (child.nodeType === 1) {
@@ -237,15 +240,21 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
         let oldContent = child.textContent
         let newContent = ''
 
+        if (innerModifiedTag) { // If it continues within the modified range
+          newContent = newContent + MODIFIED_START_TAG
+        }
+
         while (oldContent.length) {
           if (originalCode.startsWith(MODIFIED_START_TAG)) { // Add modified start tag
             originalCode = originalCode.slice(MODIFIED_START_TAG.length)
             newContent = newContent + MODIFIED_START_TAG
+            innerModifiedTag = true // Start modified
             continue
           }
           if (originalCode.startsWith(MODIFIED_CLOSE_TAG)) { // Add modified close tag
             originalCode = originalCode.slice(MODIFIED_CLOSE_TAG.length)
             newContent = newContent + MODIFIED_CLOSE_TAG
+            innerModifiedTag = false // End modified
             continue
           }
 
@@ -257,6 +266,10 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
           newContent = newContent + originalCode.substring(0, nextDiffsLength)
           originalCode = originalCode.slice(nextDiffsLength)
           oldContent = oldContent.slice(nextDiffsLength)
+        }
+
+        if (innerModifiedTag) { // If the loop is finished without a modified close, it is still within the modified range.
+          newContent = newContent + MODIFIED_CLOSE_TAG
         }
 
         child.textContent = newContent // put as entity code because change textContent
