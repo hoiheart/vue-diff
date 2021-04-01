@@ -10,7 +10,7 @@
     >
       <div
         class="vue-diff-viewer-inner"
-        :style="{ minHeight: minHeight ? minHeight + 'px' : undefined }"
+        :style="{ minHeight }"
       >
         <Line
           v-for="(data, index) in visible"
@@ -19,7 +19,7 @@
           :language="language"
           :meta="meta[data.index]"
           :render="render[data.index]"
-          :virtualScroll="scrollOptions"
+          :scrollOptions="scrollOptions"
           @setLineHeight="setLineHeight"
         />
       </div>
@@ -31,17 +31,14 @@
 import {
   computed,
   defineComponent,
-  onMounted,
   ref,
-  watch
+  toRaw
 } from 'vue'
-import debounce from 'lodash-es/debounce'
-import { useVirtualScroll } from './hooks'
-import { renderLines } from './utils'
+import { useVirtualScroll, useRender } from './hooks'
 import Line from './Line.vue'
 
 import type { PropType } from 'vue'
-import type { Meta, VirtualScroll, Mode, Theme, Lines } from './types'
+import type { Mode, Theme, VirtualScroll } from './types'
 
 export default defineComponent({
   components: {
@@ -79,45 +76,17 @@ export default defineComponent({
   },
   setup (props) {
     const viewer = ref<null|HTMLElement>(null)
-    const meta = ref<Array<Meta>>([])
-    const render = ref<Array<Lines>>([])
-    const visible = computed(() => meta.value.filter(item => item.visible))
-    const { minHeight, scrollOptions, setMeta } = useVirtualScroll({
-      meta,
-      viewer,
-      virtualScroll: props.virtualScroll,
-      render
+    const scrollOptions = computed(() => {
+      if (!props.virtualScroll) return false
+      return {
+        height: 500,
+        lineMinHeight: 24,
+        scrollDelay: 250,
+        ...(typeof props.virtualScroll === 'object' ? toRaw(props.virtualScroll) : {})
+      }
     })
-
-    const setData = () => {
-      render.value = renderLines(props.mode, props.prev, props.current)
-      meta.value.splice(render.value.length)
-      render.value.map((v, index: number) => {
-        const item = meta.value[index]
-        meta.value[index] = {
-          index,
-          visible: item?.visible || !props.virtualScroll,
-          top: item?.top || undefined,
-          height: item?.height || 24
-        }
-      })
-      setMeta()
-    }
-
-    onMounted(() => {
-      watch(
-        [
-          () => props.mode,
-          () => props.prev,
-          () => props.current
-        ],
-        debounce(setData, props.inputDelay),
-        {
-          immediate: true,
-          deep: true
-        }
-      )
-    })
+    const { meta, render, visible } = useRender(props, viewer, scrollOptions)
+    const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta)
 
     const setLineHeight = (index: number, height: number) => {
       if (meta.value[index]) {

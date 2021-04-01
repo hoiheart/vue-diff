@@ -3,13 +3,7 @@
     ref="line"
     class="vue-diff-row"
     :class="`vue-diff-row-${mode}`"
-    :style="virtualScroll ? {
-      position: 'absolute',
-      left: 0,
-      top: 0,
-      transform: `translate3d(0, ${meta.top}px, 0)`,
-      minHeight: virtualScroll.lineMinHeight + 'px'
-    } : undefined">
+    :style="rowStyle">
     <!-- split view -->
     <template v-if="mode === 'split'">
       <template :key="index" v-for="(line, index) in render">
@@ -20,6 +14,7 @@
           <Code
             :language="language"
             :code="setCode(line, render, index)"
+            :scrollOptions="scrollOptions"
             @rendered="rendered"
           />
         </div>
@@ -35,6 +30,7 @@
         <Code
           :language="language"
           :code="setCode(render[0])"
+          :scrollOptions="scrollOptions"
           @rendered="rendered"
         />
       </div>
@@ -44,11 +40,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 import Code from './Code.vue'
 import { renderWords } from './utils'
 
-import type { Meta, Mode, Lines, Line } from './types'
+import type { PropType } from 'vue'
+import type { Meta, Mode, Lines, Line, VirtualScroll } from './types'
 
 export default defineComponent({
   components: {
@@ -71,10 +68,24 @@ export default defineComponent({
       type: Object as PropType<Lines>,
       required: true
     },
-    virtualScroll: {}
+    scrollOptions: {
+      type: [Boolean, Object] as PropType<false|VirtualScroll>,
+      default: false
+    }
   },
   setup (props, { emit }) {
     const line = ref<null|HTMLElement>(null)
+    const rowStyle = computed(() => {
+      if (!props.scrollOptions) return undefined
+      return {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        transform: `translate3d(0, ${props.meta.top}px, 0)`,
+        minHeight: props.scrollOptions.lineMinHeight + 'px'
+      }
+    })
+
     const setCode = (line: Line, render?: Lines, index?: number) => {
       if (!line.value) return '\n'
 
@@ -95,7 +106,7 @@ export default defineComponent({
       emit('setLineHeight', props.meta.index, line.value.offsetHeight)
     }
 
-    return { line, setCode, rendered }
+    return { line, rendered, rowStyle, setCode }
   }
 })
 </script>

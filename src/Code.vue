@@ -3,8 +3,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch, nextTick } from 'vue'
+import { defineComponent, nextTick, onMounted, ref, watch } from 'vue'
 import { setHighlightCode } from './utils'
+
+import type { PropType } from 'vue'
+import type { VirtualScroll } from './types'
 
 export default defineComponent({
   props: {
@@ -15,6 +18,10 @@ export default defineComponent({
     code: {
       type: String,
       required: true
+    },
+    scrollOptions: {
+      type: [Boolean, Object] as PropType<false|VirtualScroll>,
+      default: false
     }
   },
   emits: ['rendered'],
@@ -31,6 +38,10 @@ export default defineComponent({
 
         nextTick(() => emit('rendered'))
       }, { immediate: true })
+
+      watch([() => props.scrollOptions], () => {
+        nextTick(() => emit('rendered'))
+      }, { deep: true })
     })
 
     return {

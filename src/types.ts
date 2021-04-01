@@ -23,10 +23,11 @@ export interface Meta {
   index: number;
   visible: boolean;
   top?: number;
-  height: number;
+  height?: number;
 }
 
 export interface VirtualScroll {
-  height?: number;
-  lineMinHeight?: number;
+  height: number;
+  lineMinHeight: number;
+  scrollDelay: number;
 }
