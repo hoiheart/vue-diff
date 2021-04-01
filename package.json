@@ -86,7 +86,7 @@
     "vue-tsc": "^0.0.8"
   },
   "lint-staged": {
-    "*.{js,jsx,vue,ts,tsx}": [
+    "src/*.{js,jsx,vue,ts,tsx}": [
       "vue-cli-service lint",
       "git add"
     ]

@@ -1,8 +1,8 @@
 <template>
   <div class="form text-gray-100 mt-8">
-    <label for="language" class="mr-2">Language:</label>
-    <select v-model="language" id="language" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
-      <option :key="val" v-for="val in languages">{{ val }}</option>
+    <label for="language" class="mr-2">Type:</label>
+    <select v-model="selected" id="language" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
+      <option :key="item.title" :value="item" v-for="item in list">{{ item.title }}</option>
     </select>
     <label for="mode" class="mr-2">Mode:</label>
     <select v-model="mode" id="mode" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
@@ -29,13 +29,16 @@
   <div class="viewer">
     <section class="mt-8">
       <h2 class="text-2xl font-bold text-gray-100 mb-4">Diff</h2>
+      <p class="text-gray-100 mb-4">
+        inputDelay and virtualScroll option are set for large text diff.
+      </p>
       <Diff
         :mode="mode"
         :theme="theme"
-        :language="language"
+        :language="selected.language"
         :prev="prev"
         :current="current"
-        :input-delay="0"
+        :input-delay="150"
         :virtual-scroll="{ height: 500, lineMinHeight: 24, scrollDelay: 250 }"
       />
     </section>
@@ -51,19 +54,60 @@ export default defineComponent({
   setup () {
     const modes = ref(['split', 'unified'])
     const mode = ref('split')
-    const languages = ref(['javascript', 'html', 'css', 'yaml'])
-    const language = ref('javascript')
+    const selected = ref<null|{}>(null)
     const themes = ref(['dark', 'light', 'custom'])
     const theme = ref('dark')
+    const list = ref([
+      {
+        key: 'javascript',
+        title: 'javascript',
+        language: 'javascript',
+        inputDelay: 0,
+        virtualScroll: false
+      },
+      {
+        key: 'html',
+        title: 'html',
+        language: 'html',
+        inputDelay: 0,
+        virtualScroll: false
+      },
+      {
+        key: 'css',
+        title: 'css',
+        language: 'css',
+        inputDelay: 0,
+        virtualScroll: false
+      },
+      {
+        key: 'yaml',
+        title: 'yaml',
+        language: 'yaml',
+        inputDelay: 0,
+        virtualScroll: false
+      },
+      {
+        key: 'jquery',
+        title: 'large text',
+        language: 'javascript',
+        inputDelay: 100,
+        virtualScroll: {
+          height: 500,
+          lineMinHeight: 24,
+          scrollDelay: 250
+        }
+      }
+    ])
 
     const prev = ref('')
     const current = ref('')
+    selected.value = list.value[0]
 
-    watch(() => language.value, () => {
+    watch(() => selected.value, () => {
       // @ts-ignore
-      prev.value = template[`${language.value}1`]
+      prev.value = template[`${selected?.value.key}1`]
       // @ts-ignore
-      current.value = template[`${language.value}2`]
+      current.value = template[`${selected?.value.key}2`]
     }, {
       immediate: true
     })
@@ -78,10 +122,10 @@ export default defineComponent({
     return {
       modes,
       mode,
-      languages,
-      language,
       themes,
       theme,
+      list,
+      selected,
       prev,
       current
     }

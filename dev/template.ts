@@ -1,3 +1,8 @@
+// @ts-nocheck
+import jquery1 from './jquery-3.5.0.js?raw'
+import jquery2 from './jquery-3.6.0.js?raw'
+// @ts-check
+
 const javascript1 =
 `var a1 = {
   "name": "vue-diff",
@@ -114,5 +119,7 @@ export default {
   css1,
   css2,
   yaml1,
-  yaml2
+  yaml2,
+  jquery1,
+  jquery2
 }
