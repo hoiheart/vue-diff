@@ -91,7 +91,7 @@ export const useVirtualScroll = (props: Props, viewer: Ref<null|HTMLElement>, sc
 
   onMounted(() => {
     if (!scrollOptions.value) return
-    viewer.value?.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.scrollDelay))
+    viewer.value?.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay))
 
     debouncedWatch(
       [() => props.mode, () => props.prev, () => props.current],
@@ -111,7 +111,7 @@ export const useVirtualScroll = (props: Props, viewer: Ref<null|HTMLElement>, sc
 
   onBeforeUnmount(() => {
     if (!scrollOptions.value) return
-    viewer.value?.removeEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.scrollDelay))
+    viewer.value?.removeEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay))
   })
 
   return {

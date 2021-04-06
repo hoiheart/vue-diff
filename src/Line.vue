@@ -41,6 +41,7 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref } from 'vue'
+import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import Code from './Code.vue'
 import { renderWords } from './utils'
 
@@ -104,6 +105,13 @@ export default defineComponent({
     const rendered = () => {
       if (!line.value) return
       emit('setLineHeight', props.meta.index, line.value.offsetHeight)
+    }
+
+    if (props.scrollOptions) {
+      useResizeObserver(line, useThrottleFn(() => {
+        if (!line.value) return
+        emit('setLineHeight', props.meta.index, line.value.offsetHeight)
+      }, props.scrollOptions.delay))
     }
 
     return { line, rendered, rowStyle, setCode }

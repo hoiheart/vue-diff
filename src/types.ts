@@ -29,5 +29,5 @@ export interface Meta {
 export interface VirtualScroll {
   height: number;
   lineMinHeight: number;
-  scrollDelay: number;
+  delay: number;
 }

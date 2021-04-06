@@ -81,7 +81,7 @@ export default defineComponent({
       return {
         height: 500,
         lineMinHeight: 24,
-        scrollDelay: 250,
+        delay: 100,
         ...(typeof props.virtualScroll === 'object' ? toRaw(props.virtualScroll) : {})
       }
     })
