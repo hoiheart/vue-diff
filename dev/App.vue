@@ -39,7 +39,7 @@
         :prev="prev"
         :current="current"
         :input-delay="0"
-        :virtual-scroll="{ height: 500, lineMinHeight: 24, scrollDelay: 250 }"
+        :virtual-scroll="{ height: 500, lineMinHeight: 24, delay: 100 }"
       />
     </section>
   </div>
@@ -94,7 +94,7 @@ export default defineComponent({
         virtualScroll: {
           height: 500,
           lineMinHeight: 24,
-          scrollDelay: 250
+          delay: 100
         }
       }
     ])

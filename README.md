@@ -35,7 +35,7 @@ Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target
 * [x] Support split / unified mode
 * [x] Support multiple languages and can be extended
 * [X] Support two themes (dark / light) and can be customized
-* [X] Virtual scroll for large text comparison
+* [X] Virtual scroll for large text comparison (*Performance improvements are still needed.*)
 * [ ] Support IE11 (IE 11 support for Vue@3 is still pending)
 
 ## Install plugin
@@ -92,7 +92,7 @@ Insert the diff component with props.
     :prev="prev"
     :current="current"
     :input-delay="0"
-    :virtual-scroll="{ height: 500, lineMinHeight: 24, scrollDelay: 250 }"
+    :virtual-scroll="{ height: 500, lineMinHeight: 24, delay: 100 }"
   />
 </template>
 ```
@@ -107,7 +107,7 @@ Insert the diff component with props.
 | prev | `string` | `''` |  | Prev code |
 | current | `string` | `''` |  | Current Code |
 | inputDelay | `number` | `0` |  | Setting up rendering debounce for changes for performance benefit (mode, prev, curr) |
-| virtualScroll | `boolean\|object` | `false` |  | *Default value when setting true :*<br>`{ height: 500, lineMinHeight: 24, scrollDelay: 250 }`<br>See <a href="#virtual-scroll">virtual scroll</a> |
+| virtualScroll | `boolean\|object` | `false` |  | *Default value when setting true :*<br>`{ height: 500, lineMinHeight: 24, delay: 100 }`<br>See <a href="#virtual-scroll">virtual scroll</a> |
 
 ## Custom theme
 
@@ -184,5 +184,5 @@ When using virtual scroll, the css of all code lines is changed to the absolute 
 * height (`number`): Diff box height (Applies only to px values)
 * lineMinHeight (`number`): minimum height of line
   > Minimum height value of line is required for visible area calculation.<br>The default is 24, but you can set it yourself if you need to adjust it according to the page's front-size, line-height, etc.
-* scrollDelay (`number`): re-rendering delay when scrolling
-  > Performance problems occur when too often a re-rendering function is invoked based on scrolling<br>This setting applies a delay using throttle.
+* delay (`number`): re-rendering delay when scrolling or resizing
+  > Performance problems occur when too often a re-rendering function is invoked based on scrolling or resizing<br>This setting applies a delay using throttle.
