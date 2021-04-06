@@ -2,39 +2,25 @@ import { diff_match_patch as DiffMatchPatch } from 'diff-match-patch'
 import hljs from './highlight'
 
 import type { Ref } from 'vue'
-import type { Diff } from 'diff-match-patch'
+import type { Diffs, Lines, Mode } from './types'
 
-type Mode = 'split' | 'unified'
-type Theme = 'dark' | 'light' | 'custom'
-type Role = 'prev' | 'current' | 'unified'
+const MODIFIED_START_TAG = '<vue-diff-modified>'
+const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
 
-enum Type {
+enum DiffType {
   removed = -1,
   equal = 0,
   added = 1,
   disabled = 2
 }
 
-interface Line {
-  type: string;
-  lineNum?: number;
-  value?: string;
-  chkWords?: boolean;
-}
-
-type Lines = Array<Line>
-type Diffs = Array<Diff>
-
-const MODIFIED_START_TAG = '<vue-diff-modified>'
-const MODIFIED_CLOSE_TAG = '</vue-diff-modified>'
-
 /**
  * Get diff type
  * @param diff
  */
-const getDiffType = (type: Type) => {
-  if (!Type[type]) return 'disabled'
-  return Type[type]
+const getDiffType = (type: DiffType) => {
+  if (!DiffType[type]) return 'disabled'
+  return DiffType[type]
 }
 
 /**
@@ -238,6 +224,9 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   let pureElement = document.createElement('div')
   pureElement.innerHTML = hljs.highlight(language, pureCode).value // Highlight DOM without modified tags
 
+  // Modified span is created per highlight operator and causes it to continue
+  let innerModifiedTag = false
+
   const diffElements = (node: HTMLElement) => {
     node.childNodes.forEach(child => {
       if (child.nodeType === 1) {
@@ -251,15 +240,21 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
         let oldContent = child.textContent
         let newContent = ''
 
+        if (innerModifiedTag) { // If it continues within the modified range
+          newContent = newContent + MODIFIED_START_TAG
+        }
+
         while (oldContent.length) {
           if (originalCode.startsWith(MODIFIED_START_TAG)) { // Add modified start tag
             originalCode = originalCode.slice(MODIFIED_START_TAG.length)
             newContent = newContent + MODIFIED_START_TAG
+            innerModifiedTag = true // Start modified
             continue
           }
           if (originalCode.startsWith(MODIFIED_CLOSE_TAG)) { // Add modified close tag
             originalCode = originalCode.slice(MODIFIED_CLOSE_TAG.length)
             newContent = newContent + MODIFIED_CLOSE_TAG
+            innerModifiedTag = false // End modified
             continue
           }
 
@@ -271,6 +266,10 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
           newContent = newContent + originalCode.substring(0, nextDiffsLength)
           originalCode = originalCode.slice(nextDiffsLength)
           oldContent = oldContent.slice(nextDiffsLength)
+        }
+
+        if (innerModifiedTag) { // If the loop is finished without a modified close, it is still within the modified range.
+          newContent = newContent + MODIFIED_CLOSE_TAG
         }
 
         child.textContent = newContent // put as entity code because change textContent
@@ -291,4 +290,3 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
 }
 
 export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode }
-export type { Mode, Theme, Role, Lines, Line }

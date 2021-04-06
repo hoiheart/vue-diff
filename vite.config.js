@@ -1,25 +1,12 @@
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-export default {
+// https://vitejs.dev/config/
+export default defineConfig({
+  base: '/vue-diff/demo/',
   build: {
     outDir: 'demo',
-    assetsDir: './',
-    base: '/vue-diff/demo/'
+    assetsDir: './'
   },
-  optimizeDeps: {
-    include: [
-      'highlight.js/lib/core',
-      'highlight.js/lib/languages/css',
-      'highlight.js/lib/languages/xml',
-      'highlight.js/lib/languages/markdown',
-      'highlight.js/lib/languages/javascript',
-      'highlight.js/lib/languages/json',
-      'highlight.js/lib/languages/plaintext',
-      'highlight.js/lib/languages/typescript',
-      'highlight.js/lib/languages/yaml' // extend language test
-    ]
-  },
-  plugins: [
-    vue()
-  ]
-}
+  plugins: [vue()]
+})

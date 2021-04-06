@@ -1,21 +1,26 @@
 # vue-diff
 
-Vue diff viewer plugin
+Vue diff viewer plugin  
+<a href="https://hoiheart.github.io/vue-diff/demo/index.html" target="_blank">demo</a>
 
-> ⚠️ This plugin supports only Vue3  
-> Vue2 doesn't have a support plan yet.
+> ⚠️ This plugin does not support Vue2
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Install plugin](#install-plugin)
-  * [Options](#options)
-- [Usage diff viewer](#usage-diff-viewer)
-  * [props](#props)
-- [Custom theme](#custom-theme)
-- [Extend languages](#extend-languages)
-- [Large text comparison](#large-text-comparison)
+* [Table of Contents](#table-of-contents)
+* [Introduction](#introduction)
+* [Features](#features)
+* [Install plugin](#install-plugin)
+  + [Options](#options)
+* [Usage diff viewer](#usage-diff-viewer)
+  + [Settings with default props](#settings-with-default-props)
+  + [Settings with full props](#settings-with-full-props)
+  + [Props](#props)
+* [Custom theme](#custom-theme)
+* [Extend languages](#extend-languages)
+  + [Default supported languages and values](#default-supported-languages-and-values)
+* [Virtual scroll](#virtual-scroll)
+    - [Object props](#object-props)
 
 ## Introduction
 
@@ -30,7 +35,7 @@ Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target
 * [x] Support split / unified mode
 * [x] Support multiple languages and can be extended
 * [X] Support two themes (dark / light) and can be customized
-* [ ] Virtual scroll for large text comparison
+* [X] Virtual scroll for large text comparison (*Performance improvements are still needed.*)
 * [ ] Support IE11 (IE 11 support for Vue@3 is still pending)
 
 ## Install plugin
@@ -63,7 +68,7 @@ app.use(VueDiff, {
 ## Usage diff viewer
 
 Insert the diff component with props.
-
+### Settings with default props
 ```vue
 <template>
   <Diff
@@ -76,7 +81,23 @@ Insert the diff component with props.
 </template>
 ```
 
-### props
+### Settings with full props
+
+```vue
+<template>
+  <Diff
+    :mode="mode"
+    :theme="theme"
+    :language="language"
+    :prev="prev"
+    :current="current"
+    :input-delay="0"
+    :virtual-scroll="{ height: 500, lineMinHeight: 24, delay: 100 }"
+  />
+</template>
+```
+
+### Props
 
 | name | type | detault | values | description
 |- | - | - | - |- |
@@ -85,6 +106,8 @@ Insert the diff component with props.
 | language | `string` | `plaintext` |  | See <a href="#extend-languages">Extend languages</a>
 | prev | `string` | `''` |  | Prev code |
 | current | `string` | `''` |  | Current Code |
+| inputDelay | `number` | `0` |  | Setting up rendering debounce for changes for performance benefit (mode, prev, curr) |
+| virtualScroll | `boolean\|object` | `false` |  | *Default value when setting true :*<br>`{ height: 500, lineMinHeight: 24, delay: 100 }`<br>See <a href="#virtual-scroll">virtual scroll</a> |
 
 ## Custom theme
 
@@ -149,6 +172,17 @@ app.use(VueDiff)
 
 > <a href="https://github.com/highlightjs/highlight.js/blob/master/SUPPORTED_LANGUAGES.md">Check supported languages of Highlight.js</a>
 
-## Large text comparison
+## Virtual scroll
 
-⚠️ It's still hard to compare large texts. Virtual scroll for Vue3 must be created or found.
+Comparing text from many lines can slow down performance.<br>
+With virtualScroll props, virtualScroll applies. (Self-made for this plug-in.)
+
+#### Object property value
+
+When using virtual scroll, the css of all code lines is changed to the absolute position, which requires detailed settings.
+
+* height (`number`): Diff box height (Applies only to px values)
+* lineMinHeight (`number`): minimum height of line
+  > Minimum height value of line is required for visible area calculation.<br>The default is 24, but you can set it yourself if you need to adjust it according to the page's front-size, line-height, etc.
+* delay (`number`): re-rendering delay when scrolling or resizing
+  > Performance problems occur when too often a re-rendering function is invoked based on scrolling or resizing<br>This setting applies a delay using throttle.

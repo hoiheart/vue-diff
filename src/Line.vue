@@ -1,42 +1,52 @@
 <template>
-  <!-- split view -->
-  <tr v-if="mode === 'split'" :class="`vue-diff-row-${mode}`">
-    <template :key="index" v-for="(line, index) in data">
-      <td class="lineNum" :class="`vue-diff-cell-${line.type}`">
-        {{ line.lineNum }}
-      </td>
-      <td class="code" :class="`vue-diff-cell-${line.type}`">
-        <Code
-          :language="language"
-          :code="setCode(line, data, index)"
-        />
-      </td>
+  <div
+    ref="line"
+    class="vue-diff-row"
+    :class="`vue-diff-row-${mode}`"
+    :style="rowStyle">
+    <!-- split view -->
+    <template v-if="mode === 'split'">
+      <template :key="index" v-for="(line, index) in render">
+        <div class="lineNum" :class="`vue-diff-cell-${line.type}`">
+          {{ line.lineNum }}
+        </div>
+        <div class="code" :class="`vue-diff-cell-${line.type}`">
+          <Code
+            :language="language"
+            :code="setCode(line, render, index)"
+            :scrollOptions="scrollOptions"
+            @rendered="rendered"
+          />
+        </div>
+      </template>
     </template>
-  </tr>
-  <!-- // split view -->
-  <!-- unified view -->
-  <template v-if="mode === 'unified'">
-    <tr :class="`vue-diff-row-${mode}`">
-      <td class="lineNum" :class="`vue-diff-cell-${data[0].type}`">
-        {{ data[0].lineNum }}
-      </td>
-      <td class="code" :class="`vue-diff-cell-${data[0].type}`">
+    <!-- // split view -->
+    <!-- unified view -->
+    <template v-if="mode === 'unified'">
+      <div class="lineNum" :class="`vue-diff-cell-${render[0].type}`">
+        {{ render[0].lineNum }}
+      </div>
+      <div class="code" :class="`vue-diff-cell-${render[0].type}`">
         <Code
           :language="language"
-          :code="setCode(data[0])"
+          :code="setCode(render[0])"
+          :scrollOptions="scrollOptions"
+          @rendered="rendered"
         />
-      </td>
-    </tr>
-  </template>
-  <!-- // unified view -->
+      </div>
+    </template>
+    <!-- // unified view -->
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
+import { useResizeObserver, useThrottleFn } from '@vueuse/core'
 import Code from './Code.vue'
 import { renderWords } from './utils'
 
-import type { Mode, Lines, Line } from './utils'
+import type { PropType } from 'vue'
+import type { Meta, Mode, Lines, Line, VirtualScroll } from './types'
 
 export default defineComponent({
   components: {
@@ -51,28 +61,60 @@ export default defineComponent({
       type: String,
       required: true
     },
-    data: {
+    meta: {
+      type: Object as PropType<Meta>,
+      required: true
+    },
+    render: {
       type: Object as PropType<Lines>,
       required: true
+    },
+    scrollOptions: {
+      type: [Boolean, Object] as PropType<false|VirtualScroll>,
+      default: false
     }
   },
-  setup () {
-    const setCode = (line: Line, data?: Lines, index?: number) => {
+  setup (props, { emit }) {
+    const line = ref<null|HTMLElement>(null)
+    const rowStyle = computed(() => {
+      if (!props.scrollOptions) return undefined
+      return {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        transform: `translate3d(0, ${props.meta.top}px, 0)`,
+        minHeight: props.scrollOptions.lineMinHeight + 'px'
+      }
+    })
+
+    const setCode = (line: Line, render?: Lines, index?: number) => {
       if (!line.value) return '\n'
 
-      // Compare lines when data, index properties exist and has chkWords value in line property
-      if (typeof data === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
+      // Compare lines when render, index properties exist and has chkWords value in line property
+      if (typeof render === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
         return line.value
       }
 
-      const differ = data[index === 0 ? 1 : 0]
+      const differ = render[index === 0 ? 1 : 0]
 
       if (!differ.value) return line.value
 
       return renderWords(differ.value, line.value) // render with modified tags
     }
 
-    return { setCode }
+    const rendered = () => {
+      if (!line.value) return
+      emit('setLineHeight', props.meta.index, line.value.offsetHeight)
+    }
+
+    if (props.scrollOptions) {
+      useResizeObserver(line, useThrottleFn(() => {
+        if (!line.value) return
+        emit('setLineHeight', props.meta.index, line.value.offsetHeight)
+      }, props.scrollOptions.delay))
+    }
+
+    return { line, rendered, rowStyle, setCode }
   }
 })
 </script>

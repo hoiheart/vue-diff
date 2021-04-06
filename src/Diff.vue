@@ -1,27 +1,44 @@
 <template>
-  <div class="vue-diff-wrapper" :class="`vue-diff-mode-${mode} vue-diff-theme-${theme}`">
-    <div ref="viewer" class="vue-diff-viewer">
-      <table>
-        <tbody>
-          <Line
-            :key="index"
-            v-for="(data, index) in lines"
-            :mode="mode"
-            :language="language"
-            :data="data"
-          />
-        </tbody>
-      </table>
+  <div
+    class="vue-diff-wrapper"
+    :class="`vue-diff-mode-${mode} vue-diff-theme-${theme}`"
+  >
+    <div
+      ref="viewer"
+      class="vue-diff-viewer"
+      :style="{ height: scrollOptions ? scrollOptions.height + 'px' : undefined }"
+    >
+      <div
+        class="vue-diff-viewer-inner"
+        :style="{ minHeight }"
+      >
+        <Line
+          v-for="(data, index) in visible"
+          :key="index"
+          :mode="mode"
+          :language="language"
+          :meta="meta[data.index]"
+          :render="render[data.index]"
+          :scrollOptions="scrollOptions"
+          @setLineHeight="setLineHeight"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, watch } from 'vue'
-import { renderLines } from './utils'
+import {
+  computed,
+  defineComponent,
+  ref,
+  toRaw
+} from 'vue'
+import { useVirtualScroll, useRender } from './hooks'
 import Line from './Line.vue'
 
-import type { Mode, Theme, Lines } from './utils'
+import type { PropType } from 'vue'
+import type { Mode, Theme, VirtualScroll } from './types'
 
 export default defineComponent({
   components: {
@@ -47,26 +64,45 @@ export default defineComponent({
     current: {
       type: String,
       default: ''
+    },
+    inputDelay: {
+      type: Number,
+      default: 0
+    },
+    virtualScroll: {
+      type: [Boolean, Object] as PropType<boolean|VirtualScroll>,
+      default: false
     }
   },
   setup (props) {
-    const lines = ref<Array<Lines>>([])
-
-    watch([
-      () => props.mode,
-      () => props.prev,
-      () => props.current
-    ], () => {
-      const render = renderLines(props.mode, props.prev, props.current)
-
-      if (render.length > 1000) {
-        console.warn('Comparison of many lines is not recommended because rendering delays occur.')
+    const viewer = ref<null|HTMLElement>(null)
+    const scrollOptions = computed(() => {
+      if (!props.virtualScroll) return false
+      return {
+        height: 500,
+        lineMinHeight: 24,
+        delay: 100,
+        ...(typeof props.virtualScroll === 'object' ? toRaw(props.virtualScroll) : {})
       }
+    })
+    const { meta, render, visible } = useRender(props, viewer, scrollOptions)
+    const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta)
 
-      lines.value = render
-    }, { immediate: true })
+    const setLineHeight = (index: number, height: number) => {
+      if (meta.value[index]) {
+        meta.value[index].height = height
+      }
+    }
 
-    return { lines }
+    return {
+      meta,
+      minHeight,
+      render,
+      scrollOptions,
+      setLineHeight,
+      viewer,
+      visible
+    }
   }
 })
 </script>

@@ -25,7 +25,7 @@ const options = {
     resolve(),
     commonjs(),
     scss({
-      processor: css => postcss([autoprefixer()])
+      processor: () => postcss([autoprefixer()])
     }),
     css({ output: 'dist/index.css' })
   ]
