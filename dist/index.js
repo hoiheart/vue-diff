@@ -1,4 +1,221 @@
-import { defineComponent, ref, onMounted, watch, openBlock, createBlock, createVNode, resolveComponent, Fragment, createCommentVNode, renderList, toDisplayString } from 'vue';
+import { watch, unref, getCurrentInstance, onUnmounted, ref, computed, onMounted, nextTick, onBeforeUnmount, defineComponent, openBlock, createBlock, createVNode, resolveComponent, createCommentVNode, Fragment, renderList, toDisplayString, toRaw } from 'vue';
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __rest$1(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+}
+
+const isClient = typeof window !== 'undefined';
+
+/**
+ * @internal
+ */
+function createFilterWrapper(filter, fn) {
+    function wrapper(...args) {
+        filter(() => fn.apply(this, args), { fn, thisArg: this, args });
+    }
+    return wrapper;
+}
+const bypassFilter = (invoke) => {
+    return invoke();
+};
+/**
+ * Create an EventFilter that debounce the events
+ *
+ * @param ms
+ */
+function debounceFilter(ms) {
+    let timer;
+    const filter = (invoke) => {
+        const duration = unref(ms);
+        if (timer)
+            clearTimeout(timer);
+        if (duration <= 0)
+            return invoke();
+        timer = setTimeout(invoke, duration);
+    };
+    return filter;
+}
+/**
+ * Create an EventFilter that throttle the events
+ *
+ * @param ms
+ * @param [trailing=true]
+ */
+function throttleFilter(ms, trailing = true) {
+    let lastExec = 0;
+    let timer;
+    const clear = () => {
+        if (timer) {
+            clearTimeout(timer);
+            timer = undefined;
+        }
+    };
+    const filter = (invoke) => {
+        const duration = unref(ms);
+        const elapsed = Date.now() - lastExec;
+        clear();
+        if (duration <= 0) {
+            lastExec = Date.now();
+            return invoke();
+        }
+        if (elapsed > duration) {
+            lastExec = Date.now();
+            invoke();
+        }
+        else if (trailing) {
+            timer = setTimeout(() => {
+                clear();
+                invoke();
+            }, duration);
+        }
+    };
+    return filter;
+}
+
+// implementation
+function watchWithFilter(source, cb, options = {}) {
+    const { eventFilter = bypassFilter } = options, watchOptions = __rest$1(options, ["eventFilter"]);
+    return watch(source, createFilterWrapper(eventFilter, cb), watchOptions);
+}
+
+// implementation
+function debouncedWatch(source, cb, options = {}) {
+    const { debounce = 0 } = options, watchOptions = __rest$1(options, ["debounce"]);
+    return watchWithFilter(source, cb, Object.assign(Object.assign({}, watchOptions), { eventFilter: debounceFilter(debounce) }));
+}
+
+/**
+ * Call onUnmounted() if it's inside a component lifecycle, if not, do nothing
+ *
+ * @param fn
+ */
+function tryOnUnmounted(fn) {
+    if (getCurrentInstance())
+        onUnmounted(fn);
+}
+
+/**
+ * Throttle execution of a function. Especially useful for rate limiting
+ * execution of handlers on events like resize and scroll.
+ *
+ * @param   fn             A function to be executed after delay milliseconds. The `this` context and all arguments are passed through, as-is,
+ *                                    to `callback` when the throttled-function is executed.
+ * @param   ms             A zero-or-greater delay in milliseconds. For event callbacks, values around 100 or 250 (or even higher) are most useful.
+ *
+ * @return  A new, throttled, function.
+ */
+function useThrottleFn(fn, ms = 200, trailing = true) {
+    return createFilterWrapper(throttleFilter(ms, trailing), fn);
+}
+
+const defaultWindow = /* #__PURE__ */ isClient ? window : undefined;
+
+/**
+ * Get the dom element of a ref of element or Vue component instance
+ *
+ * @param elRef
+ */
+function unrefElement(elRef) {
+    var _a, _b;
+    const plain = unref(elRef);
+    return (_b = (_a = plain) === null || _a === void 0 ? void 0 : _a.$el) !== null && _b !== void 0 ? _b : plain;
+}
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __rest(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+}
+
+/**
+ * Reports changes to the dimensions of an Element's content or the border-box
+ *
+ * @link https://vueuse.org/useResizeObserver
+ * @param target
+ * @param callback
+ * @param options
+ */
+function useResizeObserver(target, callback, options = {}) {
+    const { window = defaultWindow } = options, observerOptions = __rest(options, ["window"]);
+    let observer;
+    const isSupported = window && 'ResizeObserver' in window;
+    const cleanup = () => {
+        if (observer) {
+            observer.disconnect();
+            observer = undefined;
+        }
+    };
+    const stopWatch = watch(() => unrefElement(target), (el) => {
+        cleanup();
+        if (isSupported && window && el) {
+            // @ts-expect-error missing type
+            observer = new window.ResizeObserver(callback);
+            observer.observe(el, observerOptions);
+        }
+    }, { immediate: true, flush: 'post' });
+    const stop = () => {
+        cleanup();
+        stopWatch();
+    };
+    tryOnUnmounted(stop);
+    return {
+        isSupported,
+        stop,
+    };
+}
+
+var SwipeDirection;
+(function (SwipeDirection) {
+    SwipeDirection["UP"] = "UP";
+    SwipeDirection["RIGHT"] = "RIGHT";
+    SwipeDirection["DOWN"] = "DOWN";
+    SwipeDirection["LEFT"] = "LEFT";
+    SwipeDirection["NONE"] = "NONE";
+})(SwipeDirection || (SwipeDirection = {}));
 
 function createCommonjsModule(fn) {
   var module = { exports: {} };
@@ -2567,7 +2784,7 @@ function escape(value) {
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source(re) {
+function source$4(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
 
@@ -2578,8 +2795,8 @@ function source(re) {
  * @param {...(RegExp | string) } args
  * @returns {string}
  */
-function concat(...args) {
-  const joined = args.map((x) => source(x)).join("");
+function concat$4(...args) {
+  const joined = args.map((x) => source$4(x)).join("");
   return joined;
 }
 
@@ -2590,8 +2807,8 @@ function concat(...args) {
  * @param {(RegExp | string)[] } args
  * @returns {string}
  */
-function either(...args) {
-  const joined = '(' + args.map((x) => source(x)).join("|") + ")";
+function either$1(...args) {
+  const joined = '(' + args.map((x) => source$4(x)).join("|") + ")";
   return joined;
 }
 
@@ -2637,7 +2854,7 @@ function join(regexps, separator = "|") {
   for (let i = 0; i < regexps.length; i++) {
     numCaptures += 1;
     const offset = numCaptures;
-    let re = source(regexps[i]);
+    let re = source$4(regexps[i]);
     if (i > 0) {
       ret += separator;
     }
@@ -2666,7 +2883,7 @@ function join(regexps, separator = "|") {
 }
 
 // Common regexps
-const IDENT_RE = '[a-zA-Z]\\w*';
+const IDENT_RE$2 = '[a-zA-Z]\\w*';
 const UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
 const NUMBER_RE = '\\b\\d+(\\.\\d+)?';
 const C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
@@ -2679,7 +2896,7 @@ const RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|
 const SHEBANG = (opts = {}) => {
   const beginShebang = /^#![ ]*\//;
   if (opts.binary) {
-    opts.begin = concat(
+    opts.begin = concat$4(
       beginShebang,
       /.*\b/,
       opts.binary,
@@ -2801,7 +3018,7 @@ const REGEXP_MODE = {
 };
 const TITLE_MODE = {
   className: 'title',
-  begin: IDENT_RE,
+  begin: IDENT_RE$2,
   relevance: 0
 };
 const UNDERSCORE_TITLE_MODE = {
@@ -2834,7 +3051,7 @@ const END_SAME_AS_BEGIN = function(mode) {
 
 var MODES = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    IDENT_RE: IDENT_RE,
+    IDENT_RE: IDENT_RE$2,
     UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
     NUMBER_RE: NUMBER_RE,
     C_NUMBER_RE: C_NUMBER_RE,
@@ -2918,7 +3135,7 @@ function beginKeywords(mode, parent) {
 function compileIllegal(mode, _parent) {
   if (!Array.isArray(mode.illegal)) return;
 
-  mode.illegal = either(...mode.illegal);
+  mode.illegal = either$1(...mode.illegal);
 }
 
 /**
@@ -3043,7 +3260,7 @@ function compileLanguage(language, { plugins }) {
    */
   function langRe(value, global) {
     return new RegExp(
-      source(value),
+      source$4(value),
       'm' + (language.case_insensitive ? 'i' : '') + (global ? 'g' : '')
     );
   }
@@ -3346,7 +3563,7 @@ function compileLanguage(language, { plugins }) {
       if (mode.endSameAsBegin) mode.end = mode.begin;
       if (!mode.end && !mode.endsWithParent) mode.end = /\B|\b/;
       if (mode.end) cmode.endRe = langRe(mode.end);
-      cmode.terminatorEnd = source(mode.end) || '';
+      cmode.terminatorEnd = source$4(mode.end) || '';
       if (mode.endsWithParent && parent.terminatorEnd) {
         cmode.terminatorEnd += (mode.end ? '|' : '') + parent.terminatorEnd;
       }
@@ -4746,7 +4963,7 @@ var css_1 = css;
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source$1(re) {
+function source$3(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
 
@@ -4757,8 +4974,8 @@ function source$1(re) {
  * @param {RegExp | string } re
  * @returns {string}
  */
-function lookahead(re) {
-  return concat$1('(?=', re, ')');
+function lookahead$2(re) {
+  return concat$3('(?=', re, ')');
 }
 
 /**
@@ -4766,15 +4983,15 @@ function lookahead(re) {
  * @returns {string}
  */
 function optional(re) {
-  return concat$1('(', re, ')?');
+  return concat$3('(', re, ')?');
 }
 
 /**
  * @param {...(RegExp | string) } args
  * @returns {string}
  */
-function concat$1(...args) {
-  const joined = args.map((x) => source$1(x)).join("");
+function concat$3(...args) {
+  const joined = args.map((x) => source$3(x)).join("");
   return joined;
 }
 
@@ -4785,8 +5002,8 @@ function concat$1(...args) {
  * @param {(RegExp | string)[] } args
  * @returns {string}
  */
-function either$1(...args) {
-  const joined = '(' + args.map((x) => source$1(x)).join("|") + ")";
+function either(...args) {
+  const joined = '(' + args.map((x) => source$3(x)).join("|") + ")";
   return joined;
 }
 
@@ -4800,7 +5017,7 @@ Audit: 2020
 /** @type LanguageFn */
 function xml(hljs) {
   // Element names can contain letters, digits, hyphens, underscores, and periods
-  const TAG_NAME_RE = concat$1(/[A-Z_]/, optional(/[A-Z0-9_.-]+:/), /[A-Z0-9_.-]*/);
+  const TAG_NAME_RE = concat$3(/[A-Z_]/, optional(/[A-Z0-9_.-]+:/), /[A-Z0-9_.-]*/);
   const XML_IDENT_RE = /[A-Za-z0-9._:-]+/;
   const XML_ENTITIES = {
     className: 'symbol',
@@ -4977,14 +5194,14 @@ function xml(hljs) {
       // open tag
       {
         className: 'tag',
-        begin: concat$1(
+        begin: concat$3(
           /</,
-          lookahead(concat$1(
+          lookahead$2(concat$3(
             TAG_NAME_RE,
             // <tag/>
             // <tag>
             // <tag ...
-            either$1(/\/>/, />/, /\s/)
+            either(/\/>/, />/, /\s/)
           ))
         ),
         end: /\/?>/,
@@ -5000,9 +5217,9 @@ function xml(hljs) {
       // close tag
       {
         className: 'tag',
-        begin: concat$1(
+        begin: concat$3(
           /<\//,
-          lookahead(concat$1(
+          lookahead$2(concat$3(
             TAG_NAME_RE, />/
           ))
         ),
@@ -5283,690 +5500,6 @@ function markdown(hljs) {
 var markdown_1 = markdown;
 
 const IDENT_RE$1 = '[A-Za-z$_][0-9A-Za-z$_]*';
-const KEYWORDS = [
-  "as", // for exports
-  "in",
-  "of",
-  "if",
-  "for",
-  "while",
-  "finally",
-  "var",
-  "new",
-  "function",
-  "do",
-  "return",
-  "void",
-  "else",
-  "break",
-  "catch",
-  "instanceof",
-  "with",
-  "throw",
-  "case",
-  "default",
-  "try",
-  "switch",
-  "continue",
-  "typeof",
-  "delete",
-  "let",
-  "yield",
-  "const",
-  "class",
-  // JS handles these with a special rule
-  // "get",
-  // "set",
-  "debugger",
-  "async",
-  "await",
-  "static",
-  "import",
-  "from",
-  "export",
-  "extends"
-];
-const LITERALS = [
-  "true",
-  "false",
-  "null",
-  "undefined",
-  "NaN",
-  "Infinity"
-];
-
-const TYPES = [
-  "Intl",
-  "DataView",
-  "Number",
-  "Math",
-  "Date",
-  "String",
-  "RegExp",
-  "Object",
-  "Function",
-  "Boolean",
-  "Error",
-  "Symbol",
-  "Set",
-  "Map",
-  "WeakSet",
-  "WeakMap",
-  "Proxy",
-  "Reflect",
-  "JSON",
-  "Promise",
-  "Float64Array",
-  "Int16Array",
-  "Int32Array",
-  "Int8Array",
-  "Uint16Array",
-  "Uint32Array",
-  "Float32Array",
-  "Array",
-  "Uint8Array",
-  "Uint8ClampedArray",
-  "ArrayBuffer"
-];
-
-const ERROR_TYPES = [
-  "EvalError",
-  "InternalError",
-  "RangeError",
-  "ReferenceError",
-  "SyntaxError",
-  "TypeError",
-  "URIError"
-];
-
-const BUILT_IN_GLOBALS = [
-  "setInterval",
-  "setTimeout",
-  "clearInterval",
-  "clearTimeout",
-
-  "require",
-  "exports",
-
-  "eval",
-  "isFinite",
-  "isNaN",
-  "parseFloat",
-  "parseInt",
-  "decodeURI",
-  "decodeURIComponent",
-  "encodeURI",
-  "encodeURIComponent",
-  "escape",
-  "unescape"
-];
-
-const BUILT_IN_VARIABLES = [
-  "arguments",
-  "this",
-  "super",
-  "console",
-  "window",
-  "document",
-  "localStorage",
-  "module",
-  "global" // Node.js
-];
-
-const BUILT_INS = [].concat(
-  BUILT_IN_GLOBALS,
-  BUILT_IN_VARIABLES,
-  TYPES,
-  ERROR_TYPES
-);
-
-/**
- * @param {string} value
- * @returns {RegExp}
- * */
-
-/**
- * @param {RegExp | string } re
- * @returns {string}
- */
-function source$3(re) {
-  if (!re) return null;
-  if (typeof re === "string") return re;
-
-  return re.source;
-}
-
-/**
- * @param {RegExp | string } re
- * @returns {string}
- */
-function lookahead$1(re) {
-  return concat$3('(?=', re, ')');
-}
-
-/**
- * @param {...(RegExp | string) } args
- * @returns {string}
- */
-function concat$3(...args) {
-  const joined = args.map((x) => source$3(x)).join("");
-  return joined;
-}
-
-/*
-Language: JavaScript
-Description: JavaScript (JS) is a lightweight, interpreted, or just-in-time compiled programming language with first-class functions.
-Category: common, scripting
-Website: https://developer.mozilla.org/en-US/docs/Web/JavaScript
-*/
-
-/** @type LanguageFn */
-function javascript(hljs) {
-  /**
-   * Takes a string like "<Booger" and checks to see
-   * if we can find a matching "</Booger" later in the
-   * content.
-   * @param {RegExpMatchArray} match
-   * @param {{after:number}} param1
-   */
-  const hasClosingTag = (match, { after }) => {
-    const tag = "</" + match[0].slice(1);
-    const pos = match.input.indexOf(tag, after);
-    return pos !== -1;
-  };
-
-  const IDENT_RE$1$1 = IDENT_RE$1;
-  const FRAGMENT = {
-    begin: '<>',
-    end: '</>'
-  };
-  const XML_TAG = {
-    begin: /<[A-Za-z0-9\\._:-]+/,
-    end: /\/[A-Za-z0-9\\._:-]+>|\/>/,
-    /**
-     * @param {RegExpMatchArray} match
-     * @param {CallbackResponse} response
-     */
-    isTrulyOpeningTag: (match, response) => {
-      const afterMatchIndex = match[0].length + match.index;
-      const nextChar = match.input[afterMatchIndex];
-      // nested type?
-      // HTML should not include another raw `<` inside a tag
-      // But a type might: `<Array<Array<number>>`, etc.
-      if (nextChar === "<") {
-        response.ignoreMatch();
-        return;
-      }
-      // <something>
-      // This is now either a tag or a type.
-      if (nextChar === ">") {
-        // if we cannot find a matching closing tag, then we
-        // will ignore it
-        if (!hasClosingTag(match, { after: afterMatchIndex })) {
-          response.ignoreMatch();
-        }
-      }
-    }
-  };
-  const KEYWORDS$1 = {
-    $pattern: IDENT_RE$1,
-    keyword: KEYWORDS.join(" "),
-    literal: LITERALS.join(" "),
-    built_in: BUILT_INS.join(" ")
-  };
-
-  // https://tc39.es/ecma262/#sec-literals-numeric-literals
-  const decimalDigits = '[0-9](_?[0-9])*';
-  const frac = `\\.(${decimalDigits})`;
-  // DecimalIntegerLiteral, including Annex B NonOctalDecimalIntegerLiteral
-  // https://tc39.es/ecma262/#sec-additional-syntax-numeric-literals
-  const decimalInteger = `0|[1-9](_?[0-9])*|0[0-7]*[89][0-9]*`;
-  const NUMBER = {
-    className: 'number',
-    variants: [
-      // DecimalLiteral
-      { begin: `(\\b(${decimalInteger})((${frac})|\\.)?|(${frac}))` +
-        `[eE][+-]?(${decimalDigits})\\b` },
-      { begin: `\\b(${decimalInteger})\\b((${frac})\\b|\\.)?|(${frac})\\b` },
-
-      // DecimalBigIntegerLiteral
-      { begin: `\\b(0|[1-9](_?[0-9])*)n\\b` },
-
-      // NonDecimalIntegerLiteral
-      { begin: "\\b0[xX][0-9a-fA-F](_?[0-9a-fA-F])*n?\\b" },
-      { begin: "\\b0[bB][0-1](_?[0-1])*n?\\b" },
-      { begin: "\\b0[oO][0-7](_?[0-7])*n?\\b" },
-
-      // LegacyOctalIntegerLiteral (does not include underscore separators)
-      // https://tc39.es/ecma262/#sec-additional-syntax-numeric-literals
-      { begin: "\\b0[0-7]+n?\\b" },
-    ],
-    relevance: 0
-  };
-
-  const SUBST = {
-    className: 'subst',
-    begin: '\\$\\{',
-    end: '\\}',
-    keywords: KEYWORDS$1,
-    contains: [] // defined later
-  };
-  const HTML_TEMPLATE = {
-    begin: 'html`',
-    end: '',
-    starts: {
-      end: '`',
-      returnEnd: false,
-      contains: [
-        hljs.BACKSLASH_ESCAPE,
-        SUBST
-      ],
-      subLanguage: 'xml'
-    }
-  };
-  const CSS_TEMPLATE = {
-    begin: 'css`',
-    end: '',
-    starts: {
-      end: '`',
-      returnEnd: false,
-      contains: [
-        hljs.BACKSLASH_ESCAPE,
-        SUBST
-      ],
-      subLanguage: 'css'
-    }
-  };
-  const TEMPLATE_STRING = {
-    className: 'string',
-    begin: '`',
-    end: '`',
-    contains: [
-      hljs.BACKSLASH_ESCAPE,
-      SUBST
-    ]
-  };
-  const JSDOC_COMMENT = hljs.COMMENT(
-    /\/\*\*(?!\/)/,
-    '\\*/',
-    {
-      relevance: 0,
-      contains: [
-        {
-          className: 'doctag',
-          begin: '@[A-Za-z]+',
-          contains: [
-            {
-              className: 'type',
-              begin: '\\{',
-              end: '\\}',
-              relevance: 0
-            },
-            {
-              className: 'variable',
-              begin: IDENT_RE$1$1 + '(?=\\s*(-)|$)',
-              endsParent: true,
-              relevance: 0
-            },
-            // eat spaces (not newlines) so we can find
-            // types or variables
-            {
-              begin: /(?=[^\n])\s/,
-              relevance: 0
-            }
-          ]
-        }
-      ]
-    }
-  );
-  const COMMENT = {
-    className: "comment",
-    variants: [
-      JSDOC_COMMENT,
-      hljs.C_BLOCK_COMMENT_MODE,
-      hljs.C_LINE_COMMENT_MODE
-    ]
-  };
-  const SUBST_INTERNALS = [
-    hljs.APOS_STRING_MODE,
-    hljs.QUOTE_STRING_MODE,
-    HTML_TEMPLATE,
-    CSS_TEMPLATE,
-    TEMPLATE_STRING,
-    NUMBER,
-    hljs.REGEXP_MODE
-  ];
-  SUBST.contains = SUBST_INTERNALS
-    .concat({
-      // we need to pair up {} inside our subst to prevent
-      // it from ending too early by matching another }
-      begin: /\{/,
-      end: /\}/,
-      keywords: KEYWORDS$1,
-      contains: [
-        "self"
-      ].concat(SUBST_INTERNALS)
-    });
-  const SUBST_AND_COMMENTS = [].concat(COMMENT, SUBST.contains);
-  const PARAMS_CONTAINS = SUBST_AND_COMMENTS.concat([
-    // eat recursive parens in sub expressions
-    {
-      begin: /\(/,
-      end: /\)/,
-      keywords: KEYWORDS$1,
-      contains: ["self"].concat(SUBST_AND_COMMENTS)
-    }
-  ]);
-  const PARAMS = {
-    className: 'params',
-    begin: /\(/,
-    end: /\)/,
-    excludeBegin: true,
-    excludeEnd: true,
-    keywords: KEYWORDS$1,
-    contains: PARAMS_CONTAINS
-  };
-
-  return {
-    name: 'Javascript',
-    aliases: ['js', 'jsx', 'mjs', 'cjs'],
-    keywords: KEYWORDS$1,
-    // this will be extended by TypeScript
-    exports: { PARAMS_CONTAINS },
-    illegal: /#(?![$_A-z])/,
-    contains: [
-      hljs.SHEBANG({
-        label: "shebang",
-        binary: "node",
-        relevance: 5
-      }),
-      {
-        label: "use_strict",
-        className: 'meta',
-        relevance: 10,
-        begin: /^\s*['"]use (strict|asm)['"]/
-      },
-      hljs.APOS_STRING_MODE,
-      hljs.QUOTE_STRING_MODE,
-      HTML_TEMPLATE,
-      CSS_TEMPLATE,
-      TEMPLATE_STRING,
-      COMMENT,
-      NUMBER,
-      { // object attr container
-        begin: concat$3(/[{,\n]\s*/,
-          // we need to look ahead to make sure that we actually have an
-          // attribute coming up so we don't steal a comma from a potential
-          // "value" container
-          //
-          // NOTE: this might not work how you think.  We don't actually always
-          // enter this mode and stay.  Instead it might merely match `,
-          // <comments up next>` and then immediately end after the , because it
-          // fails to find any actual attrs. But this still does the job because
-          // it prevents the value contain rule from grabbing this instead and
-          // prevening this rule from firing when we actually DO have keys.
-          lookahead$1(concat$3(
-            // we also need to allow for multiple possible comments inbetween
-            // the first key:value pairing
-            /(((\/\/.*$)|(\/\*(\*[^/]|[^*])*\*\/))\s*)*/,
-            IDENT_RE$1$1 + '\\s*:'))),
-        relevance: 0,
-        contains: [
-          {
-            className: 'attr',
-            begin: IDENT_RE$1$1 + lookahead$1('\\s*:'),
-            relevance: 0
-          }
-        ]
-      },
-      { // "value" container
-        begin: '(' + hljs.RE_STARTERS_RE + '|\\b(case|return|throw)\\b)\\s*',
-        keywords: 'return throw case',
-        contains: [
-          COMMENT,
-          hljs.REGEXP_MODE,
-          {
-            className: 'function',
-            // we have to count the parens to make sure we actually have the
-            // correct bounding ( ) before the =>.  There could be any number of
-            // sub-expressions inside also surrounded by parens.
-            begin: '(\\(' +
-            '[^()]*(\\(' +
-            '[^()]*(\\(' +
-            '[^()]*' +
-            '\\)[^()]*)*' +
-            '\\)[^()]*)*' +
-            '\\)|' + hljs.UNDERSCORE_IDENT_RE + ')\\s*=>',
-            returnBegin: true,
-            end: '\\s*=>',
-            contains: [
-              {
-                className: 'params',
-                variants: [
-                  {
-                    begin: hljs.UNDERSCORE_IDENT_RE,
-                    relevance: 0
-                  },
-                  {
-                    className: null,
-                    begin: /\(\s*\)/,
-                    skip: true
-                  },
-                  {
-                    begin: /\(/,
-                    end: /\)/,
-                    excludeBegin: true,
-                    excludeEnd: true,
-                    keywords: KEYWORDS$1,
-                    contains: PARAMS_CONTAINS
-                  }
-                ]
-              }
-            ]
-          },
-          { // could be a comma delimited list of params to a function call
-            begin: /,/, relevance: 0
-          },
-          {
-            className: '',
-            begin: /\s/,
-            end: /\s*/,
-            skip: true
-          },
-          { // JSX
-            variants: [
-              { begin: FRAGMENT.begin, end: FRAGMENT.end },
-              {
-                begin: XML_TAG.begin,
-                // we carefully check the opening tag to see if it truly
-                // is a tag and not a false positive
-                'on:begin': XML_TAG.isTrulyOpeningTag,
-                end: XML_TAG.end
-              }
-            ],
-            subLanguage: 'xml',
-            contains: [
-              {
-                begin: XML_TAG.begin,
-                end: XML_TAG.end,
-                skip: true,
-                contains: ['self']
-              }
-            ]
-          }
-        ],
-        relevance: 0
-      },
-      {
-        className: 'function',
-        beginKeywords: 'function',
-        end: /[{;]/,
-        excludeEnd: true,
-        keywords: KEYWORDS$1,
-        contains: [
-          'self',
-          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
-          PARAMS
-        ],
-        illegal: /%/
-      },
-      {
-        // prevent this from getting swallowed up by function
-        // since they appear "function like"
-        beginKeywords: "while if switch catch for"
-      },
-      {
-        className: 'function',
-        // we have to count the parens to make sure we actually have the correct
-        // bounding ( ).  There could be any number of sub-expressions inside
-        // also surrounded by parens.
-        begin: hljs.UNDERSCORE_IDENT_RE +
-          '\\(' + // first parens
-          '[^()]*(\\(' +
-            '[^()]*(\\(' +
-              '[^()]*' +
-            '\\)[^()]*)*' +
-          '\\)[^()]*)*' +
-          '\\)\\s*\\{', // end parens
-        returnBegin:true,
-        contains: [
-          PARAMS,
-          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
-        ]
-      },
-      // hack: prevents detection of keywords in some circumstances
-      // .keyword()
-      // $keyword = x
-      {
-        variants: [
-          { begin: '\\.' + IDENT_RE$1$1 },
-          { begin: '\\$' + IDENT_RE$1$1 }
-        ],
-        relevance: 0
-      },
-      { // ES6 class
-        className: 'class',
-        beginKeywords: 'class',
-        end: /[{;=]/,
-        excludeEnd: true,
-        illegal: /[:"[\]]/,
-        contains: [
-          { beginKeywords: 'extends' },
-          hljs.UNDERSCORE_TITLE_MODE
-        ]
-      },
-      {
-        begin: /\b(?=constructor)/,
-        end: /[{;]/,
-        excludeEnd: true,
-        contains: [
-          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
-          'self',
-          PARAMS
-        ]
-      },
-      {
-        begin: '(get|set)\\s+(?=' + IDENT_RE$1$1 + '\\()',
-        end: /\{/,
-        keywords: "get set",
-        contains: [
-          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
-          { begin: /\(\)/ }, // eat to avoid empty params
-          PARAMS
-        ]
-      },
-      {
-        begin: /\$[(.]/ // relevance booster for a pattern common to JS libs: `$(something)` and `$.something`
-      }
-    ]
-  };
-}
-
-var javascript_1 = javascript;
-
-/*
-Language: JSON
-Description: JSON (JavaScript Object Notation) is a lightweight data-interchange format.
-Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
-Website: http://www.json.org
-Category: common, protocols
-*/
-function json(hljs) {
-  const LITERALS = {
-    literal: 'true false null'
-  };
-  const ALLOWED_COMMENTS = [
-    hljs.C_LINE_COMMENT_MODE,
-    hljs.C_BLOCK_COMMENT_MODE
-  ];
-  const TYPES = [
-    hljs.QUOTE_STRING_MODE,
-    hljs.C_NUMBER_MODE
-  ];
-  const VALUE_CONTAINER = {
-    end: ',',
-    endsWithParent: true,
-    excludeEnd: true,
-    contains: TYPES,
-    keywords: LITERALS
-  };
-  const OBJECT = {
-    begin: /\{/,
-    end: /\}/,
-    contains: [
-      {
-        className: 'attr',
-        begin: /"/,
-        end: /"/,
-        contains: [hljs.BACKSLASH_ESCAPE],
-        illegal: '\\n'
-      },
-      hljs.inherit(VALUE_CONTAINER, {
-        begin: /:/
-      })
-    ].concat(ALLOWED_COMMENTS),
-    illegal: '\\S'
-  };
-  const ARRAY = {
-    begin: '\\[',
-    end: '\\]',
-    contains: [hljs.inherit(VALUE_CONTAINER)], // inherit is a workaround for a bug that makes shared modes with endsWithParent compile only the ending of one of the parents
-    illegal: '\\S'
-  };
-  TYPES.push(OBJECT, ARRAY);
-  ALLOWED_COMMENTS.forEach(function(rule) {
-    TYPES.push(rule);
-  });
-  return {
-    name: 'JSON',
-    contains: TYPES,
-    keywords: LITERALS,
-    illegal: '\\S'
-  };
-}
-
-var json_1 = json;
-
-/*
-Language: Plain text
-Author: Egor Rogov (e.rogov@postgrespro.ru)
-Description: Plain text without any highlighting.
-Category: common
-*/
-function plaintext(hljs) {
-  return {
-    name: 'Plain text',
-    aliases: [
-      'text',
-      'txt'
-    ],
-    disableAutodetect: true
-  };
-}
-
-var plaintext_1 = plaintext;
-
-const IDENT_RE$2 = '[A-Za-z$_][0-9A-Za-z$_]*';
 const KEYWORDS$1 = [
   "as", // for exports
   "in",
@@ -6113,7 +5646,7 @@ const BUILT_INS$1 = [].concat(
  * @param {RegExp | string } re
  * @returns {string}
  */
-function source$4(re) {
+function source$1(re) {
   if (!re) return null;
   if (typeof re === "string") return re;
 
@@ -6124,16 +5657,16 @@ function source$4(re) {
  * @param {RegExp | string } re
  * @returns {string}
  */
-function lookahead$2(re) {
-  return concat$4('(?=', re, ')');
+function lookahead$1(re) {
+  return concat$1('(?=', re, ')');
 }
 
 /**
  * @param {...(RegExp | string) } args
  * @returns {string}
  */
-function concat$4(...args) {
-  const joined = args.map((x) => source$4(x)).join("");
+function concat$1(...args) {
+  const joined = args.map((x) => source$1(x)).join("");
   return joined;
 }
 
@@ -6159,7 +5692,7 @@ function javascript$1(hljs) {
     return pos !== -1;
   };
 
-  const IDENT_RE$1 = IDENT_RE$2;
+  const IDENT_RE$1$1 = IDENT_RE$1;
   const FRAGMENT = {
     begin: '<>',
     end: '</>'
@@ -6193,7 +5726,7 @@ function javascript$1(hljs) {
     }
   };
   const KEYWORDS$1$1 = {
-    $pattern: IDENT_RE$2,
+    $pattern: IDENT_RE$1,
     keyword: KEYWORDS$1.join(" "),
     literal: LITERALS$1.join(" "),
     built_in: BUILT_INS$1.join(" ")
@@ -6288,7 +5821,7 @@ function javascript$1(hljs) {
             },
             {
               className: 'variable',
-              begin: IDENT_RE$1 + '(?=\\s*(-)|$)',
+              begin: IDENT_RE$1$1 + '(?=\\s*(-)|$)',
               endsParent: true,
               relevance: 0
             },
@@ -6378,7 +5911,7 @@ function javascript$1(hljs) {
       COMMENT,
       NUMBER,
       { // object attr container
-        begin: concat$4(/[{,\n]\s*/,
+        begin: concat$1(/[{,\n]\s*/,
           // we need to look ahead to make sure that we actually have an
           // attribute coming up so we don't steal a comma from a potential
           // "value" container
@@ -6389,16 +5922,16 @@ function javascript$1(hljs) {
           // fails to find any actual attrs. But this still does the job because
           // it prevents the value contain rule from grabbing this instead and
           // prevening this rule from firing when we actually DO have keys.
-          lookahead$2(concat$4(
+          lookahead$1(concat$1(
             // we also need to allow for multiple possible comments inbetween
             // the first key:value pairing
             /(((\/\/.*$)|(\/\*(\*[^/]|[^*])*\*\/))\s*)*/,
-            IDENT_RE$1 + '\\s*:'))),
+            IDENT_RE$1$1 + '\\s*:'))),
         relevance: 0,
         contains: [
           {
             className: 'attr',
-            begin: IDENT_RE$1 + lookahead$2('\\s*:'),
+            begin: IDENT_RE$1$1 + lookahead$1('\\s*:'),
             relevance: 0
           }
         ]
@@ -6489,6 +6022,690 @@ function javascript$1(hljs) {
         keywords: KEYWORDS$1$1,
         contains: [
           'self',
+          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
+          PARAMS
+        ],
+        illegal: /%/
+      },
+      {
+        // prevent this from getting swallowed up by function
+        // since they appear "function like"
+        beginKeywords: "while if switch catch for"
+      },
+      {
+        className: 'function',
+        // we have to count the parens to make sure we actually have the correct
+        // bounding ( ).  There could be any number of sub-expressions inside
+        // also surrounded by parens.
+        begin: hljs.UNDERSCORE_IDENT_RE +
+          '\\(' + // first parens
+          '[^()]*(\\(' +
+            '[^()]*(\\(' +
+              '[^()]*' +
+            '\\)[^()]*)*' +
+          '\\)[^()]*)*' +
+          '\\)\\s*\\{', // end parens
+        returnBegin:true,
+        contains: [
+          PARAMS,
+          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
+        ]
+      },
+      // hack: prevents detection of keywords in some circumstances
+      // .keyword()
+      // $keyword = x
+      {
+        variants: [
+          { begin: '\\.' + IDENT_RE$1$1 },
+          { begin: '\\$' + IDENT_RE$1$1 }
+        ],
+        relevance: 0
+      },
+      { // ES6 class
+        className: 'class',
+        beginKeywords: 'class',
+        end: /[{;=]/,
+        excludeEnd: true,
+        illegal: /[:"[\]]/,
+        contains: [
+          { beginKeywords: 'extends' },
+          hljs.UNDERSCORE_TITLE_MODE
+        ]
+      },
+      {
+        begin: /\b(?=constructor)/,
+        end: /[{;]/,
+        excludeEnd: true,
+        contains: [
+          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
+          'self',
+          PARAMS
+        ]
+      },
+      {
+        begin: '(get|set)\\s+(?=' + IDENT_RE$1$1 + '\\()',
+        end: /\{/,
+        keywords: "get set",
+        contains: [
+          hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1$1 }),
+          { begin: /\(\)/ }, // eat to avoid empty params
+          PARAMS
+        ]
+      },
+      {
+        begin: /\$[(.]/ // relevance booster for a pattern common to JS libs: `$(something)` and `$.something`
+      }
+    ]
+  };
+}
+
+var javascript_1 = javascript$1;
+
+/*
+Language: JSON
+Description: JSON (JavaScript Object Notation) is a lightweight data-interchange format.
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Website: http://www.json.org
+Category: common, protocols
+*/
+function json(hljs) {
+  const LITERALS = {
+    literal: 'true false null'
+  };
+  const ALLOWED_COMMENTS = [
+    hljs.C_LINE_COMMENT_MODE,
+    hljs.C_BLOCK_COMMENT_MODE
+  ];
+  const TYPES = [
+    hljs.QUOTE_STRING_MODE,
+    hljs.C_NUMBER_MODE
+  ];
+  const VALUE_CONTAINER = {
+    end: ',',
+    endsWithParent: true,
+    excludeEnd: true,
+    contains: TYPES,
+    keywords: LITERALS
+  };
+  const OBJECT = {
+    begin: /\{/,
+    end: /\}/,
+    contains: [
+      {
+        className: 'attr',
+        begin: /"/,
+        end: /"/,
+        contains: [hljs.BACKSLASH_ESCAPE],
+        illegal: '\\n'
+      },
+      hljs.inherit(VALUE_CONTAINER, {
+        begin: /:/
+      })
+    ].concat(ALLOWED_COMMENTS),
+    illegal: '\\S'
+  };
+  const ARRAY = {
+    begin: '\\[',
+    end: '\\]',
+    contains: [hljs.inherit(VALUE_CONTAINER)], // inherit is a workaround for a bug that makes shared modes with endsWithParent compile only the ending of one of the parents
+    illegal: '\\S'
+  };
+  TYPES.push(OBJECT, ARRAY);
+  ALLOWED_COMMENTS.forEach(function(rule) {
+    TYPES.push(rule);
+  });
+  return {
+    name: 'JSON',
+    contains: TYPES,
+    keywords: LITERALS,
+    illegal: '\\S'
+  };
+}
+
+var json_1 = json;
+
+/*
+Language: Plain text
+Author: Egor Rogov (e.rogov@postgrespro.ru)
+Description: Plain text without any highlighting.
+Category: common
+*/
+function plaintext(hljs) {
+  return {
+    name: 'Plain text',
+    aliases: [
+      'text',
+      'txt'
+    ],
+    disableAutodetect: true
+  };
+}
+
+var plaintext_1 = plaintext;
+
+const IDENT_RE = '[A-Za-z$_][0-9A-Za-z$_]*';
+const KEYWORDS = [
+  "as", // for exports
+  "in",
+  "of",
+  "if",
+  "for",
+  "while",
+  "finally",
+  "var",
+  "new",
+  "function",
+  "do",
+  "return",
+  "void",
+  "else",
+  "break",
+  "catch",
+  "instanceof",
+  "with",
+  "throw",
+  "case",
+  "default",
+  "try",
+  "switch",
+  "continue",
+  "typeof",
+  "delete",
+  "let",
+  "yield",
+  "const",
+  "class",
+  // JS handles these with a special rule
+  // "get",
+  // "set",
+  "debugger",
+  "async",
+  "await",
+  "static",
+  "import",
+  "from",
+  "export",
+  "extends"
+];
+const LITERALS = [
+  "true",
+  "false",
+  "null",
+  "undefined",
+  "NaN",
+  "Infinity"
+];
+
+const TYPES = [
+  "Intl",
+  "DataView",
+  "Number",
+  "Math",
+  "Date",
+  "String",
+  "RegExp",
+  "Object",
+  "Function",
+  "Boolean",
+  "Error",
+  "Symbol",
+  "Set",
+  "Map",
+  "WeakSet",
+  "WeakMap",
+  "Proxy",
+  "Reflect",
+  "JSON",
+  "Promise",
+  "Float64Array",
+  "Int16Array",
+  "Int32Array",
+  "Int8Array",
+  "Uint16Array",
+  "Uint32Array",
+  "Float32Array",
+  "Array",
+  "Uint8Array",
+  "Uint8ClampedArray",
+  "ArrayBuffer"
+];
+
+const ERROR_TYPES = [
+  "EvalError",
+  "InternalError",
+  "RangeError",
+  "ReferenceError",
+  "SyntaxError",
+  "TypeError",
+  "URIError"
+];
+
+const BUILT_IN_GLOBALS = [
+  "setInterval",
+  "setTimeout",
+  "clearInterval",
+  "clearTimeout",
+
+  "require",
+  "exports",
+
+  "eval",
+  "isFinite",
+  "isNaN",
+  "parseFloat",
+  "parseInt",
+  "decodeURI",
+  "decodeURIComponent",
+  "encodeURI",
+  "encodeURIComponent",
+  "escape",
+  "unescape"
+];
+
+const BUILT_IN_VARIABLES = [
+  "arguments",
+  "this",
+  "super",
+  "console",
+  "window",
+  "document",
+  "localStorage",
+  "module",
+  "global" // Node.js
+];
+
+const BUILT_INS = [].concat(
+  BUILT_IN_GLOBALS,
+  BUILT_IN_VARIABLES,
+  TYPES,
+  ERROR_TYPES
+);
+
+/**
+ * @param {string} value
+ * @returns {RegExp}
+ * */
+
+/**
+ * @param {RegExp | string } re
+ * @returns {string}
+ */
+function source(re) {
+  if (!re) return null;
+  if (typeof re === "string") return re;
+
+  return re.source;
+}
+
+/**
+ * @param {RegExp | string } re
+ * @returns {string}
+ */
+function lookahead(re) {
+  return concat('(?=', re, ')');
+}
+
+/**
+ * @param {...(RegExp | string) } args
+ * @returns {string}
+ */
+function concat(...args) {
+  const joined = args.map((x) => source(x)).join("");
+  return joined;
+}
+
+/*
+Language: JavaScript
+Description: JavaScript (JS) is a lightweight, interpreted, or just-in-time compiled programming language with first-class functions.
+Category: common, scripting
+Website: https://developer.mozilla.org/en-US/docs/Web/JavaScript
+*/
+
+/** @type LanguageFn */
+function javascript(hljs) {
+  /**
+   * Takes a string like "<Booger" and checks to see
+   * if we can find a matching "</Booger" later in the
+   * content.
+   * @param {RegExpMatchArray} match
+   * @param {{after:number}} param1
+   */
+  const hasClosingTag = (match, { after }) => {
+    const tag = "</" + match[0].slice(1);
+    const pos = match.input.indexOf(tag, after);
+    return pos !== -1;
+  };
+
+  const IDENT_RE$1 = IDENT_RE;
+  const FRAGMENT = {
+    begin: '<>',
+    end: '</>'
+  };
+  const XML_TAG = {
+    begin: /<[A-Za-z0-9\\._:-]+/,
+    end: /\/[A-Za-z0-9\\._:-]+>|\/>/,
+    /**
+     * @param {RegExpMatchArray} match
+     * @param {CallbackResponse} response
+     */
+    isTrulyOpeningTag: (match, response) => {
+      const afterMatchIndex = match[0].length + match.index;
+      const nextChar = match.input[afterMatchIndex];
+      // nested type?
+      // HTML should not include another raw `<` inside a tag
+      // But a type might: `<Array<Array<number>>`, etc.
+      if (nextChar === "<") {
+        response.ignoreMatch();
+        return;
+      }
+      // <something>
+      // This is now either a tag or a type.
+      if (nextChar === ">") {
+        // if we cannot find a matching closing tag, then we
+        // will ignore it
+        if (!hasClosingTag(match, { after: afterMatchIndex })) {
+          response.ignoreMatch();
+        }
+      }
+    }
+  };
+  const KEYWORDS$1 = {
+    $pattern: IDENT_RE,
+    keyword: KEYWORDS.join(" "),
+    literal: LITERALS.join(" "),
+    built_in: BUILT_INS.join(" ")
+  };
+
+  // https://tc39.es/ecma262/#sec-literals-numeric-literals
+  const decimalDigits = '[0-9](_?[0-9])*';
+  const frac = `\\.(${decimalDigits})`;
+  // DecimalIntegerLiteral, including Annex B NonOctalDecimalIntegerLiteral
+  // https://tc39.es/ecma262/#sec-additional-syntax-numeric-literals
+  const decimalInteger = `0|[1-9](_?[0-9])*|0[0-7]*[89][0-9]*`;
+  const NUMBER = {
+    className: 'number',
+    variants: [
+      // DecimalLiteral
+      { begin: `(\\b(${decimalInteger})((${frac})|\\.)?|(${frac}))` +
+        `[eE][+-]?(${decimalDigits})\\b` },
+      { begin: `\\b(${decimalInteger})\\b((${frac})\\b|\\.)?|(${frac})\\b` },
+
+      // DecimalBigIntegerLiteral
+      { begin: `\\b(0|[1-9](_?[0-9])*)n\\b` },
+
+      // NonDecimalIntegerLiteral
+      { begin: "\\b0[xX][0-9a-fA-F](_?[0-9a-fA-F])*n?\\b" },
+      { begin: "\\b0[bB][0-1](_?[0-1])*n?\\b" },
+      { begin: "\\b0[oO][0-7](_?[0-7])*n?\\b" },
+
+      // LegacyOctalIntegerLiteral (does not include underscore separators)
+      // https://tc39.es/ecma262/#sec-additional-syntax-numeric-literals
+      { begin: "\\b0[0-7]+n?\\b" },
+    ],
+    relevance: 0
+  };
+
+  const SUBST = {
+    className: 'subst',
+    begin: '\\$\\{',
+    end: '\\}',
+    keywords: KEYWORDS$1,
+    contains: [] // defined later
+  };
+  const HTML_TEMPLATE = {
+    begin: 'html`',
+    end: '',
+    starts: {
+      end: '`',
+      returnEnd: false,
+      contains: [
+        hljs.BACKSLASH_ESCAPE,
+        SUBST
+      ],
+      subLanguage: 'xml'
+    }
+  };
+  const CSS_TEMPLATE = {
+    begin: 'css`',
+    end: '',
+    starts: {
+      end: '`',
+      returnEnd: false,
+      contains: [
+        hljs.BACKSLASH_ESCAPE,
+        SUBST
+      ],
+      subLanguage: 'css'
+    }
+  };
+  const TEMPLATE_STRING = {
+    className: 'string',
+    begin: '`',
+    end: '`',
+    contains: [
+      hljs.BACKSLASH_ESCAPE,
+      SUBST
+    ]
+  };
+  const JSDOC_COMMENT = hljs.COMMENT(
+    /\/\*\*(?!\/)/,
+    '\\*/',
+    {
+      relevance: 0,
+      contains: [
+        {
+          className: 'doctag',
+          begin: '@[A-Za-z]+',
+          contains: [
+            {
+              className: 'type',
+              begin: '\\{',
+              end: '\\}',
+              relevance: 0
+            },
+            {
+              className: 'variable',
+              begin: IDENT_RE$1 + '(?=\\s*(-)|$)',
+              endsParent: true,
+              relevance: 0
+            },
+            // eat spaces (not newlines) so we can find
+            // types or variables
+            {
+              begin: /(?=[^\n])\s/,
+              relevance: 0
+            }
+          ]
+        }
+      ]
+    }
+  );
+  const COMMENT = {
+    className: "comment",
+    variants: [
+      JSDOC_COMMENT,
+      hljs.C_BLOCK_COMMENT_MODE,
+      hljs.C_LINE_COMMENT_MODE
+    ]
+  };
+  const SUBST_INTERNALS = [
+    hljs.APOS_STRING_MODE,
+    hljs.QUOTE_STRING_MODE,
+    HTML_TEMPLATE,
+    CSS_TEMPLATE,
+    TEMPLATE_STRING,
+    NUMBER,
+    hljs.REGEXP_MODE
+  ];
+  SUBST.contains = SUBST_INTERNALS
+    .concat({
+      // we need to pair up {} inside our subst to prevent
+      // it from ending too early by matching another }
+      begin: /\{/,
+      end: /\}/,
+      keywords: KEYWORDS$1,
+      contains: [
+        "self"
+      ].concat(SUBST_INTERNALS)
+    });
+  const SUBST_AND_COMMENTS = [].concat(COMMENT, SUBST.contains);
+  const PARAMS_CONTAINS = SUBST_AND_COMMENTS.concat([
+    // eat recursive parens in sub expressions
+    {
+      begin: /\(/,
+      end: /\)/,
+      keywords: KEYWORDS$1,
+      contains: ["self"].concat(SUBST_AND_COMMENTS)
+    }
+  ]);
+  const PARAMS = {
+    className: 'params',
+    begin: /\(/,
+    end: /\)/,
+    excludeBegin: true,
+    excludeEnd: true,
+    keywords: KEYWORDS$1,
+    contains: PARAMS_CONTAINS
+  };
+
+  return {
+    name: 'Javascript',
+    aliases: ['js', 'jsx', 'mjs', 'cjs'],
+    keywords: KEYWORDS$1,
+    // this will be extended by TypeScript
+    exports: { PARAMS_CONTAINS },
+    illegal: /#(?![$_A-z])/,
+    contains: [
+      hljs.SHEBANG({
+        label: "shebang",
+        binary: "node",
+        relevance: 5
+      }),
+      {
+        label: "use_strict",
+        className: 'meta',
+        relevance: 10,
+        begin: /^\s*['"]use (strict|asm)['"]/
+      },
+      hljs.APOS_STRING_MODE,
+      hljs.QUOTE_STRING_MODE,
+      HTML_TEMPLATE,
+      CSS_TEMPLATE,
+      TEMPLATE_STRING,
+      COMMENT,
+      NUMBER,
+      { // object attr container
+        begin: concat(/[{,\n]\s*/,
+          // we need to look ahead to make sure that we actually have an
+          // attribute coming up so we don't steal a comma from a potential
+          // "value" container
+          //
+          // NOTE: this might not work how you think.  We don't actually always
+          // enter this mode and stay.  Instead it might merely match `,
+          // <comments up next>` and then immediately end after the , because it
+          // fails to find any actual attrs. But this still does the job because
+          // it prevents the value contain rule from grabbing this instead and
+          // prevening this rule from firing when we actually DO have keys.
+          lookahead(concat(
+            // we also need to allow for multiple possible comments inbetween
+            // the first key:value pairing
+            /(((\/\/.*$)|(\/\*(\*[^/]|[^*])*\*\/))\s*)*/,
+            IDENT_RE$1 + '\\s*:'))),
+        relevance: 0,
+        contains: [
+          {
+            className: 'attr',
+            begin: IDENT_RE$1 + lookahead('\\s*:'),
+            relevance: 0
+          }
+        ]
+      },
+      { // "value" container
+        begin: '(' + hljs.RE_STARTERS_RE + '|\\b(case|return|throw)\\b)\\s*',
+        keywords: 'return throw case',
+        contains: [
+          COMMENT,
+          hljs.REGEXP_MODE,
+          {
+            className: 'function',
+            // we have to count the parens to make sure we actually have the
+            // correct bounding ( ) before the =>.  There could be any number of
+            // sub-expressions inside also surrounded by parens.
+            begin: '(\\(' +
+            '[^()]*(\\(' +
+            '[^()]*(\\(' +
+            '[^()]*' +
+            '\\)[^()]*)*' +
+            '\\)[^()]*)*' +
+            '\\)|' + hljs.UNDERSCORE_IDENT_RE + ')\\s*=>',
+            returnBegin: true,
+            end: '\\s*=>',
+            contains: [
+              {
+                className: 'params',
+                variants: [
+                  {
+                    begin: hljs.UNDERSCORE_IDENT_RE,
+                    relevance: 0
+                  },
+                  {
+                    className: null,
+                    begin: /\(\s*\)/,
+                    skip: true
+                  },
+                  {
+                    begin: /\(/,
+                    end: /\)/,
+                    excludeBegin: true,
+                    excludeEnd: true,
+                    keywords: KEYWORDS$1,
+                    contains: PARAMS_CONTAINS
+                  }
+                ]
+              }
+            ]
+          },
+          { // could be a comma delimited list of params to a function call
+            begin: /,/, relevance: 0
+          },
+          {
+            className: '',
+            begin: /\s/,
+            end: /\s*/,
+            skip: true
+          },
+          { // JSX
+            variants: [
+              { begin: FRAGMENT.begin, end: FRAGMENT.end },
+              {
+                begin: XML_TAG.begin,
+                // we carefully check the opening tag to see if it truly
+                // is a tag and not a false positive
+                'on:begin': XML_TAG.isTrulyOpeningTag,
+                end: XML_TAG.end
+              }
+            ],
+            subLanguage: 'xml',
+            contains: [
+              {
+                begin: XML_TAG.begin,
+                end: XML_TAG.end,
+                skip: true,
+                contains: ['self']
+              }
+            ]
+          }
+        ],
+        relevance: 0
+      },
+      {
+        className: 'function',
+        beginKeywords: 'function',
+        end: /[{;]/,
+        excludeEnd: true,
+        keywords: KEYWORDS$1,
+        contains: [
+          'self',
           hljs.inherit(hljs.TITLE_MODE, { begin: IDENT_RE$1 }),
           PARAMS
         ],
@@ -6577,7 +6794,7 @@ Category: common, scripting
 
 /** @type LanguageFn */
 function typescript(hljs) {
-  const IDENT_RE$1 = IDENT_RE$2;
+  const IDENT_RE$1 = IDENT_RE;
   const NAMESPACE = {
     beginKeywords: 'namespace', end: /\{/, excludeEnd: true
   };
@@ -6613,11 +6830,11 @@ function typescript(hljs) {
     "abstract",
     "readonly"
   ];
-  const KEYWORDS$1$1 = {
-    $pattern: IDENT_RE$2,
-    keyword: KEYWORDS$1.concat(TS_SPECIFIC_KEYWORDS).join(" "),
-    literal: LITERALS$1.join(" "),
-    built_in: BUILT_INS$1.concat(TYPES).join(" ")
+  const KEYWORDS$1 = {
+    $pattern: IDENT_RE,
+    keyword: KEYWORDS.concat(TS_SPECIFIC_KEYWORDS).join(" "),
+    literal: LITERALS.join(" "),
+    built_in: BUILT_INS.concat(TYPES).join(" ")
   };
   const DECORATOR = {
     className: 'meta',
@@ -6630,11 +6847,11 @@ function typescript(hljs) {
     mode.contains.splice(indx, 1, replacement);
   };
 
-  const tsLanguage = javascript$1(hljs);
+  const tsLanguage = javascript(hljs);
 
   // this should update anywhere keywords is used since
   // it will be the same actual JS object
-  Object.assign(tsLanguage.keywords, KEYWORDS$1$1);
+  Object.assign(tsLanguage.keywords, KEYWORDS$1);
 
   tsLanguage.exports.PARAMS_CONTAINS.push(DECORATOR);
   tsLanguage.contains = tsLanguage.contains.concat([
@@ -6669,23 +6886,23 @@ core.registerLanguage('json', json_1);
 core.registerLanguage('plaintext', plaintext_1);
 core.registerLanguage('typescript', typescript_1);
 
-var Type;
-(function (Type) {
-    Type[Type["removed"] = -1] = "removed";
-    Type[Type["equal"] = 0] = "equal";
-    Type[Type["added"] = 1] = "added";
-    Type[Type["disabled"] = 2] = "disabled";
-})(Type || (Type = {}));
 const MODIFIED_START_TAG = '<vue-diff-modified>';
 const MODIFIED_CLOSE_TAG = '</vue-diff-modified>';
+var DiffType;
+(function (DiffType) {
+    DiffType[DiffType["removed"] = -1] = "removed";
+    DiffType[DiffType["equal"] = 0] = "equal";
+    DiffType[DiffType["added"] = 1] = "added";
+    DiffType[DiffType["disabled"] = 2] = "disabled";
+})(DiffType || (DiffType = {}));
 /**
  * Get diff type
  * @param diff
  */
 const getDiffType = (type) => {
-    if (!Type[type])
+    if (!DiffType[type])
         return 'disabled';
-    return Type[type];
+    return DiffType[type];
 };
 /**
  * Get lines object on the split mode
@@ -6867,6 +7084,8 @@ const setHighlightCode = ({ highlightCode, language, code }) => {
     const pureCode = code.replace(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'), ''); // Without modified tags
     let pureElement = document.createElement('div');
     pureElement.innerHTML = core.highlight(language, pureCode).value; // Highlight DOM without modified tags
+    // Modified span is created per highlight operator and causes it to continue
+    let innerModifiedTag = false;
     const diffElements = (node) => {
         node.childNodes.forEach(child => {
             if (child.nodeType === 1) {
@@ -6878,15 +7097,20 @@ const setHighlightCode = ({ highlightCode, language, code }) => {
                     return;
                 let oldContent = child.textContent;
                 let newContent = '';
+                if (innerModifiedTag) { // If it continues within the modified range
+                    newContent = newContent + MODIFIED_START_TAG;
+                }
                 while (oldContent.length) {
                     if (originalCode.startsWith(MODIFIED_START_TAG)) { // Add modified start tag
                         originalCode = originalCode.slice(MODIFIED_START_TAG.length);
                         newContent = newContent + MODIFIED_START_TAG;
+                        innerModifiedTag = true; // Start modified
                         continue;
                     }
                     if (originalCode.startsWith(MODIFIED_CLOSE_TAG)) { // Add modified close tag
                         originalCode = originalCode.slice(MODIFIED_CLOSE_TAG.length);
                         newContent = newContent + MODIFIED_CLOSE_TAG;
+                        innerModifiedTag = false; // End modified
                         continue;
                     }
                     // Add words before modified tag
@@ -6896,6 +7120,9 @@ const setHighlightCode = ({ highlightCode, language, code }) => {
                     newContent = newContent + originalCode.substring(0, nextDiffsLength);
                     originalCode = originalCode.slice(nextDiffsLength);
                     oldContent = oldContent.slice(nextDiffsLength);
+                }
+                if (innerModifiedTag) { // If the loop is finished without a modified close, it is still within the modified range.
+                    newContent = newContent + MODIFIED_CLOSE_TAG;
                 }
                 child.textContent = newContent; // put as entity code because change textContent
             }
@@ -6911,7 +7138,91 @@ const setHighlightCode = ({ highlightCode, language, code }) => {
     pureElement = null;
 };
 
-var script = defineComponent({
+const useRender = (props, viewer, scrollOptions) => {
+    const render = ref([]);
+    const meta = ref([]);
+    const visible = computed(() => meta.value.filter(item => item.visible));
+    const setRender = () => {
+        const result = renderLines(props.mode, props.prev, props.current);
+        render.value = result;
+        meta.value.splice(render.value.length);
+        render.value.map((v, index) => {
+            const item = meta.value[index];
+            if (scrollOptions.value) {
+                meta.value[index] = {
+                    index,
+                    visible: item?.visible || false,
+                    top: item?.top || undefined,
+                    height: item?.height || scrollOptions.value.lineMinHeight
+                };
+            }
+            else {
+                meta.value[index] = {
+                    index,
+                    visible: true
+                };
+            }
+        });
+    };
+    debouncedWatch([() => props.mode, () => props.prev, () => props.current], setRender, {
+        debounce: props.inputDelay,
+        immediate: true
+    });
+    return {
+        meta,
+        render,
+        visible
+    };
+};
+const useVirtualScroll = (props, viewer, scrollOptions, meta) => {
+    const minHeight = computed(() => {
+        if (!scrollOptions.value)
+            return undefined;
+        const reduce = meta.value.reduce((acc, curr) => {
+            curr.top = acc;
+            return acc + curr.height;
+        }, 0);
+        return reduce + 'px';
+    });
+    const setMeta = () => {
+        if (!viewer.value || !scrollOptions.value)
+            return;
+        const scrollTop = viewer.value.scrollTop;
+        const height = scrollOptions.value.height;
+        const min = scrollTop - height * 1.5;
+        const max = scrollTop + height + height * 1.5;
+        meta.value.reduce((acc, curr) => {
+            if (acc >= min && acc <= max) {
+                curr.visible = true;
+            }
+            else {
+                curr.visible = false;
+            }
+            curr.top = acc;
+            return acc + curr.height;
+        }, 0);
+    };
+    onMounted(() => {
+        if (!scrollOptions.value)
+            return;
+        viewer.value?.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay));
+        debouncedWatch([() => props.mode, () => props.prev, () => props.current], () => nextTick(setMeta), {
+            debounce: props.inputDelay,
+            immediate: true
+        });
+        watch([() => props.mode, () => props.prev, () => props.current], () => nextTick(setMeta), { immediate: true });
+    });
+    onBeforeUnmount(() => {
+        if (!scrollOptions.value)
+            return;
+        viewer.value?.removeEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay));
+    });
+    return {
+        minHeight
+    };
+};
+
+var script$2 = defineComponent({
     props: {
         language: {
             type: String,
@@ -6920,18 +7231,27 @@ var script = defineComponent({
         code: {
             type: String,
             required: true
+        },
+        scrollOptions: {
+            type: [Boolean, Object],
+            default: false
         }
     },
-    setup(props) {
+    emits: ['rendered'],
+    setup(props, { emit }) {
         const highlightCode = ref('');
         onMounted(() => {
-            watch(() => props.code, () => {
+            watch([() => props.language, () => props.code], () => {
                 setHighlightCode({
                     highlightCode,
                     language: props.language,
                     code: props.code
                 });
+                nextTick(() => emit('rendered'));
             }, { immediate: true });
+            watch([() => props.scrollOptions], () => {
+                nextTick(() => emit('rendered'));
+            }, { deep: true });
         });
         return {
             highlightCode
@@ -6939,7 +7259,7 @@ var script = defineComponent({
     }
 });
 
-function render(_ctx, _cache, $props, $setup, $data, $options) {
+function render$2(_ctx, _cache, $props, $setup, $data, $options) {
   return (openBlock(), createBlock("pre", null, [
     createVNode("code", {
       class: "hljs",
@@ -6948,12 +7268,12 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   ]))
 }
 
-script.render = render;
-script.__file = "src/Code.vue";
+script$2.render = render$2;
+script$2.__file = "src/Code.vue";
 
 var script$1 = defineComponent({
     components: {
-        Code: script
+        Code: script$2
     },
     props: {
         mode: {
@@ -6964,83 +7284,115 @@ var script$1 = defineComponent({
             type: String,
             required: true
         },
-        data: {
+        meta: {
             type: Object,
             required: true
+        },
+        render: {
+            type: Object,
+            required: true
+        },
+        scrollOptions: {
+            type: [Boolean, Object],
+            default: false
         }
     },
-    setup() {
-        const setCode = (line, data, index) => {
+    setup(props, { emit }) {
+        const line = ref(null);
+        const rowStyle = computed(() => {
+            if (!props.scrollOptions)
+                return undefined;
+            return {
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                transform: `translate3d(0, ${props.meta.top}px, 0)`,
+                minHeight: props.scrollOptions.lineMinHeight + 'px'
+            };
+        });
+        const setCode = (line, render, index) => {
             if (!line.value)
                 return '\n';
-            // Compare lines when data, index properties exist and has chkWords value in line property
-            if (typeof data === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
+            // Compare lines when render, index properties exist and has chkWords value in line property
+            if (typeof render === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
                 return line.value;
             }
-            const differ = data[index === 0 ? 1 : 0];
+            const differ = render[index === 0 ? 1 : 0];
             if (!differ.value)
                 return line.value;
             return renderWords(differ.value, line.value); // render with modified tags
         };
-        return { setCode };
+        const rendered = () => {
+            if (!line.value)
+                return;
+            emit('setLineHeight', props.meta.index, line.value.offsetHeight);
+        };
+        if (props.scrollOptions) {
+            useResizeObserver(line, useThrottleFn(() => {
+                if (!line.value)
+                    return;
+                emit('setLineHeight', props.meta.index, line.value.offsetHeight);
+            }, props.scrollOptions.delay));
+        }
+        return { line, rendered, rowStyle, setCode };
     }
 });
 
 function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Code = resolveComponent("Code");
 
-  return (openBlock(), createBlock(Fragment, null, [
+  return (openBlock(), createBlock("div", {
+    ref: "line",
+    class: ["vue-diff-row", `vue-diff-row-${_ctx.mode}`],
+    style: _ctx.rowStyle
+  }, [
     createCommentVNode(" split view "),
     (_ctx.mode === 'split')
-      ? (openBlock(), createBlock("tr", {
-          key: 0,
-          class: `vue-diff-row-${_ctx.mode}`
-        }, [
-          (openBlock(true), createBlock(Fragment, null, renderList(_ctx.data, (line, index) => {
-            return (openBlock(), createBlock(Fragment, { key: index }, [
-              createVNode("td", {
-                class: ["lineNum", `vue-diff-cell-${line.type}`]
-              }, toDisplayString(line.lineNum), 3 /* TEXT, CLASS */),
-              createVNode("td", {
-                class: ["code", `vue-diff-cell-${line.type}`]
-              }, [
-                createVNode(_component_Code, {
-                  language: _ctx.language,
-                  code: _ctx.setCode(line, _ctx.data, index)
-                }, null, 8 /* PROPS */, ["language", "code"])
-              ], 2 /* CLASS */)
-            ], 64 /* STABLE_FRAGMENT */))
-          }), 128 /* KEYED_FRAGMENT */))
-        ], 2 /* CLASS */))
+      ? (openBlock(true), createBlock(Fragment, { key: 0 }, renderList(_ctx.render, (line, index) => {
+          return (openBlock(), createBlock(Fragment, { key: index }, [
+            createVNode("div", {
+              class: ["lineNum", `vue-diff-cell-${line.type}`]
+            }, toDisplayString(line.lineNum), 3 /* TEXT, CLASS */),
+            createVNode("div", {
+              class: ["code", `vue-diff-cell-${line.type}`]
+            }, [
+              createVNode(_component_Code, {
+                language: _ctx.language,
+                code: _ctx.setCode(line, _ctx.render, index),
+                scrollOptions: _ctx.scrollOptions,
+                onRendered: _ctx.rendered
+              }, null, 8 /* PROPS */, ["language", "code", "scrollOptions", "onRendered"])
+            ], 2 /* CLASS */)
+          ], 64 /* STABLE_FRAGMENT */))
+        }), 128 /* KEYED_FRAGMENT */))
       : createCommentVNode("v-if", true),
     createCommentVNode(" // split view "),
     createCommentVNode(" unified view "),
     (_ctx.mode === 'unified')
-      ? (openBlock(), createBlock("tr", {
-          key: 1,
-          class: `vue-diff-row-${_ctx.mode}`
-        }, [
-          createVNode("td", {
-            class: ["lineNum", `vue-diff-cell-${_ctx.data[0].type}`]
-          }, toDisplayString(_ctx.data[0].lineNum), 3 /* TEXT, CLASS */),
-          createVNode("td", {
-            class: ["code", `vue-diff-cell-${_ctx.data[0].type}`]
+      ? (openBlock(), createBlock(Fragment, { key: 1 }, [
+          createVNode("div", {
+            class: ["lineNum", `vue-diff-cell-${_ctx.render[0].type}`]
+          }, toDisplayString(_ctx.render[0].lineNum), 3 /* TEXT, CLASS */),
+          createVNode("div", {
+            class: ["code", `vue-diff-cell-${_ctx.render[0].type}`]
           }, [
             createVNode(_component_Code, {
               language: _ctx.language,
-              code: _ctx.setCode(_ctx.data[0])
-            }, null, 8 /* PROPS */, ["language", "code"])
+              code: _ctx.setCode(_ctx.render[0]),
+              scrollOptions: _ctx.scrollOptions,
+              onRendered: _ctx.rendered
+            }, null, 8 /* PROPS */, ["language", "code", "scrollOptions", "onRendered"])
           ], 2 /* CLASS */)
-        ], 2 /* CLASS */))
+        ], 64 /* STABLE_FRAGMENT */))
       : createCommentVNode("v-if", true),
     createCommentVNode(" // unified view ")
-  ], 64 /* STABLE_FRAGMENT */))
+  ], 6 /* CLASS, STYLE */))
 }
 
 script$1.render = render$1;
 script$1.__file = "src/Line.vue";
 
-var script$2 = defineComponent({
+var script = defineComponent({
     components: {
         Line: script$1
     },
@@ -7064,60 +7416,85 @@ var script$2 = defineComponent({
         current: {
             type: String,
             default: ''
+        },
+        inputDelay: {
+            type: Number,
+            default: 0
+        },
+        virtualScroll: {
+            type: [Boolean, Object],
+            default: false
         }
     },
     setup(props) {
-        const lines = ref([]);
-        watch([
-            () => props.mode,
-            () => props.prev,
-            () => props.current
-        ], () => {
-            const render = renderLines(props.mode, props.prev, props.current);
-            if (render.length > 1000) {
-                console.warn('Comparison of many lines is not recommended because rendering delays occur.');
+        const viewer = ref(null);
+        const scrollOptions = computed(() => {
+            if (!props.virtualScroll)
+                return false;
+            return {
+                height: 500,
+                lineMinHeight: 24,
+                delay: 100,
+                ...(typeof props.virtualScroll === 'object' ? toRaw(props.virtualScroll) : {})
+            };
+        });
+        const { meta, render, visible } = useRender(props, viewer, scrollOptions);
+        const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta);
+        const setLineHeight = (index, height) => {
+            if (meta.value[index]) {
+                meta.value[index].height = height;
             }
-            lines.value = render;
-        }, { immediate: true });
-        return { lines };
+        };
+        return {
+            meta,
+            minHeight,
+            render,
+            scrollOptions,
+            setLineHeight,
+            viewer,
+            visible
+        };
     }
 });
 
-const _hoisted_1 = {
-  ref: "viewer",
-  class: "vue-diff-viewer"
-};
-
-function render$2(_ctx, _cache, $props, $setup, $data, $options) {
+function render(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Line = resolveComponent("Line");
 
   return (openBlock(), createBlock("div", {
     class: ["vue-diff-wrapper", `vue-diff-mode-${_ctx.mode} vue-diff-theme-${_ctx.theme}`]
   }, [
-    createVNode("div", _hoisted_1, [
-      createVNode("table", null, [
-        createVNode("tbody", null, [
-          (openBlock(true), createBlock(Fragment, null, renderList(_ctx.lines, (data, index) => {
-            return (openBlock(), createBlock(_component_Line, {
-              key: index,
-              mode: _ctx.mode,
-              language: _ctx.language,
-              data: data
-            }, null, 8 /* PROPS */, ["mode", "language", "data"]))
-          }), 128 /* KEYED_FRAGMENT */))
-        ])
-      ])
-    ], 512 /* NEED_PATCH */)
+    createVNode("div", {
+      ref: "viewer",
+      class: "vue-diff-viewer",
+      style: { height: _ctx.scrollOptions ? _ctx.scrollOptions.height + 'px' : undefined }
+    }, [
+      createVNode("div", {
+        class: "vue-diff-viewer-inner",
+        style: { minHeight: _ctx.minHeight }
+      }, [
+        (openBlock(true), createBlock(Fragment, null, renderList(_ctx.visible, (data, index) => {
+          return (openBlock(), createBlock(_component_Line, {
+            key: index,
+            mode: _ctx.mode,
+            language: _ctx.language,
+            meta: _ctx.meta[data.index],
+            render: _ctx.render[data.index],
+            scrollOptions: _ctx.scrollOptions,
+            onSetLineHeight: _ctx.setLineHeight
+          }, null, 8 /* PROPS */, ["mode", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]))
+        }), 128 /* KEYED_FRAGMENT */))
+      ], 4 /* STYLE */)
+    ], 4 /* STYLE */)
   ], 2 /* CLASS */))
 }
 
-script$2.render = render$2;
-script$2.__file = "src/Diff.vue";
+script.render = render;
+script.__file = "src/Diff.vue";
 
 var index = {
     install: (app, options = {}) => {
         const { componentName = 'Diff' } = options;
-        app.component(componentName, script$2);
+        app.component(componentName, script);
     },
     hljs: core
 };
