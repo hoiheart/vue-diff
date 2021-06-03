@@ -38,15 +38,15 @@
         :language="selected.language"
         :prev="prev"
         :current="current"
-        :input-delay="0"
-        :virtual-scroll="{ height: 500, lineMinHeight: 24, delay: 100 }"
+        :input-delay="selected.inputDelay"
+        :virtual-scroll="selected.virtualScroll"
       />
     </section>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
 
 import template from './template'
 
@@ -110,13 +110,6 @@ export default defineComponent({
       current.value = template[`${selected?.value.key}2`]
     }, {
       immediate: true
-    })
-
-    onMounted(() => {
-      const script = document.createElement('script')
-      script.async = true
-      script.defer = true
-      document.body.appendChild(script)
     })
 
     return {

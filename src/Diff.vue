@@ -28,12 +28,7 @@
 </template>
 
 <script lang="ts">
-import {
-  computed,
-  defineComponent,
-  ref,
-  toRaw
-} from 'vue'
+import { computed, defineComponent, ref, toRaw } from 'vue'
 import { useVirtualScroll, useRender } from './hooks'
 import Line from './Line.vue'
 
@@ -89,7 +84,7 @@ export default defineComponent({
     const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta)
 
     const setLineHeight = (index: number, height: number) => {
-      if (meta.value[index]) {
+      if (meta.value[index] && meta.value[index].height !== height) {
         meta.value[index].height = height
       }
     }
