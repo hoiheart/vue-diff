@@ -7,7 +7,7 @@ import autoprefixer from 'autoprefixer'
 import typescript from 'rollup-plugin-typescript2'
 import scss from 'rollup-plugin-scss'
 import css from 'rollup-plugin-css-only'
-import babel from '@rollup/plugin-babel'
+import babel, { getBabelOutputPlugin } from '@rollup/plugin-babel'
 
 const options = {
   input: 'src/index.ts',
@@ -45,7 +45,11 @@ export default [
     output: {
       file: 'dist/index.js',
       format: 'esm'
-    }
+    },
+    plugins: [
+      ...options.plugins,
+      getBabelOutputPlugin({ plugins: ['@babel/plugin-proposal-optional-chaining'] })
+    ]
   },
   // es5 build
   {
