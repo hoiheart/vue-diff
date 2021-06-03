@@ -9579,13 +9579,13 @@ var script$1 = defineComponent({
     };
 
     var rendered = function rendered() {
-      if (!line.value) return;
+      if (!line.value || props.meta.height === line.value.offsetHeight) return;
       emit('setLineHeight', props.meta.index, line.value.offsetHeight);
     };
 
     if (props.scrollOptions) {
       useResizeObserver(line, useThrottleFn(function () {
-        if (!line.value) return;
+        if (!line.value || props.meta.height === line.value.offsetHeight) return;
         emit('setLineHeight', props.meta.index, line.value.offsetHeight);
       }, props.scrollOptions.delay));
     }
@@ -9712,7 +9712,7 @@ var script = defineComponent({
         minHeight = _useVirtualScroll.minHeight;
 
     var setLineHeight = function setLineHeight(index, height) {
-      if (meta.value[index]) {
+      if (meta.value[index] && meta.value[index].height !== height) {
         meta.value[index].height = height;
       }
     };
