@@ -1,6 +1,6 @@
 # vue-diff
 
-Vue diff viewer plugin  
+Vue diff viewer plugin for Vue@3  
 <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target="_blank">demo</a>
 
 > ⚠️ This plugin does not support Vue2
@@ -32,11 +32,10 @@ Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target
 
 ## Features
 
-* [x] Support split / unified mode
-* [x] Support multiple languages and can be extended
-* [X] Support two themes (dark / light) and can be customized
-* [X] Virtual scroll for large text comparison (*Performance improvements are still needed.*)
-* [ ] Support IE11 (IE 11 support for Vue@3 is still pending)
+* Support split / unified mode
+* Support multiple languages and can be extended
+* Support two themes (dark / light) and can be customized
+* Virtual scroll for large text comparison
 
 ## Install plugin
 
@@ -44,11 +43,11 @@ Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target
 npm install vue-diff
 ```
 
-install plugin in vue application
+And install plugin in vue application
 
 ```ts
 import VueDiff from 'vue-diff'
-// import VueDiff from 'vue-diff/dist/index.es5' // If need to use es5 build
+
 import 'vue-diff/dist/index.css'
 
 app.use(VueDiff)
@@ -71,6 +70,9 @@ Insert the diff component with props.
 ### Settings with default props
 ```vue
 <template>
+  <!-- If the changed componentName
+  <VueDiff>
+  -->
   <Diff
     :mode="mode"
     :theme="theme"
