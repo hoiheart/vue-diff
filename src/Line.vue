@@ -103,13 +103,13 @@ export default defineComponent({
     }
 
     const rendered = () => {
-      if (!line.value || props.meta.height === line.value.offsetHeight) return
+      if (!line.value) return
       emit('setLineHeight', props.meta.index, line.value.offsetHeight)
     }
 
     if (props.scrollOptions) {
       useResizeObserver(line, useThrottleFn(() => {
-        if (!line.value || props.meta.height === line.value.offsetHeight) return
+        if (!line.value) return
         emit('setLineHeight', props.meta.index, line.value.offsetHeight)
       }, props.scrollOptions.delay))
     }
