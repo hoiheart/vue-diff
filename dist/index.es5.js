@@ -9439,23 +9439,25 @@ var useVirtualScroll = function useVirtualScroll(props, viewer, scrollOptions, m
       debounce: props.inputDelay,
       immediate: true
     });
-    watch([function () {
-      return props.mode;
-    }, function () {
-      return props.prev;
-    }, function () {
-      return props.current;
-    }], function () {
-      return nextTick(setMeta);
-    }, {
-      immediate: true
-    });
   });
   onBeforeUnmount(function () {
     var _viewer$value2;
 
     if (!scrollOptions.value) return;
     (_viewer$value2 = viewer.value) === null || _viewer$value2 === void 0 ? void 0 : _viewer$value2.removeEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay));
+  });
+  watch(scrollOptions, function (val, prev) {
+    if (!prev && val) {
+      var _viewer$value3;
+
+      (_viewer$value3 = viewer.value) === null || _viewer$value3 === void 0 ? void 0 : _viewer$value3.addEventListener('scroll', useThrottleFn(setMeta, val.delay));
+    }
+
+    if (prev && !val) {
+      var _viewer$value4;
+
+      (_viewer$value4 = viewer.value) === null || _viewer$value4 === void 0 ? void 0 : _viewer$value4.removeEventListener('scroll', useThrottleFn(setMeta, prev.delay));
+    }
   });
   return {
     minHeight: minHeight
