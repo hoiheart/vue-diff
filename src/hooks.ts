@@ -101,18 +101,24 @@ export const useVirtualScroll = (props: Props, viewer: Ref<null|HTMLElement>, sc
         immediate: true
       }
     )
-
-    watch(
-      [() => props.mode, () => props.prev, () => props.current],
-      () => nextTick(setMeta),
-      { immediate: true }
-    )
   })
 
   onBeforeUnmount(() => {
     if (!scrollOptions.value) return
     viewer.value?.removeEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay))
   })
+
+  watch(
+    scrollOptions,
+    (val, prev) => {
+      if (!prev && val) {
+        viewer.value?.addEventListener('scroll', useThrottleFn(setMeta, val.delay))
+      }
+      if (prev && !val) {
+        viewer.value?.removeEventListener('scroll', useThrottleFn(setMeta, prev.delay))
+      }
+    }
+  )
 
   return {
     minHeight
