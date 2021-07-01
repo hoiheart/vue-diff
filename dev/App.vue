@@ -12,6 +12,8 @@
     <select v-model="theme" id="theme" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
       <option :key="val" v-for="val in themes">{{ val }}</option>
     </select>
+    <label for="folding" class="mr-2">Folding:</label>
+    <input v-model="folding" type="checkbox" id="folding" class="form-checkbox" />
   </div>
   <div class="editor text-gray-100 mt-8">
     <section>
@@ -38,6 +40,7 @@
         :language="selected.language"
         :prev="prev"
         :current="current"
+        :folding="folding"
         :input-delay="selected.inputDelay"
         :virtual-scroll="selected.virtualScroll"
       />
@@ -57,6 +60,7 @@ export default defineComponent({
     const selected = ref<null|{}>(null)
     const themes = ref(['dark', 'light', 'custom'])
     const theme = ref('dark')
+    const folding = ref(false)
     const list = ref([
       {
         key: 'javascript',
@@ -117,6 +121,7 @@ export default defineComponent({
       mode,
       themes,
       theme,
+      folding,
       list,
       selected,
       prev,

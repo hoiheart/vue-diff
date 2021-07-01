@@ -83,6 +83,26 @@
       background-color: rgba(128, 128, 128, 0.1);
     }
 
+    .vue-diff-cell-fold {
+      &.lineNum {
+        opacity: 0.8;
+        font-size: 0.8em;
+
+        &:before {
+          content: ">";
+        }
+      }
+      
+      &.code {
+        text-align: center;
+
+        &:before {
+          color: #999;
+          content: "⋯⋯";
+        }
+      }
+    }
+
     pre {
       display: block;
       position: relative;
