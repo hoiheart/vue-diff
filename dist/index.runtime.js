@@ -9353,9 +9353,9 @@
   var useRender = function useRender(props, viewer, scrollOptions) {
     var render = vue.ref([]);
     var meta = vue.ref([]);
-    var visible = vue.computed(function () {
+    var list = vue.computed(function () {
       return meta.value.filter(function (item) {
-        return item.visible;
+        return props.folding ? !item.foldable && item.visible : item.visible;
       });
     });
 
@@ -9364,20 +9364,24 @@
       render.value = result;
       meta.value.splice(render.value.length);
       render.value.map(function (v, index) {
+        var _render$value;
+
         var item = meta.value[index];
+        var foldable = props.folding && v[0].type === 'equal' && ((_render$value = render.value[index - 1]) === null || _render$value === void 0 ? void 0 : _render$value[0].type) === 'equal';
+        var values = {
+          index: index,
+          foldable: foldable,
+          visible: true
+        };
 
         if (scrollOptions.value) {
-          meta.value[index] = {
-            index: index,
+          meta.value[index] = _objectSpread2(_objectSpread2({}, values), {}, {
             visible: (item === null || item === void 0 ? void 0 : item.visible) || false,
             top: (item === null || item === void 0 ? void 0 : item.top) || undefined,
             height: (item === null || item === void 0 ? void 0 : item.height) || scrollOptions.value.lineMinHeight
-          };
+          });
         } else {
-          meta.value[index] = {
-            index: index,
-            visible: true
-          };
+          meta.value[index] = _objectSpread2({}, values);
         }
       });
     };
@@ -9388,6 +9392,8 @@
       return props.prev;
     }, function () {
       return props.current;
+    }, function () {
+      return props.folding;
     }], setRender, {
       debounce: props.inputDelay,
       immediate: true
@@ -9395,7 +9401,7 @@
     return {
       meta: meta,
       render: render,
-      visible: visible
+      list: list
     };
   };
   var useVirtualScroll = function useVirtualScroll(props, viewer, scrollOptions, meta) {
@@ -9403,7 +9409,7 @@
       if (!scrollOptions.value) return undefined;
       var reduce = meta.value.reduce(function (acc, curr) {
         curr.top = acc;
-        return acc + curr.height;
+        return curr.foldable ? acc : acc + curr.height;
       }, 0);
       return reduce + 'px';
     });
@@ -9422,27 +9428,29 @@
         }
 
         curr.top = acc;
-        return acc + curr.height;
+        return curr.foldable ? acc : acc + curr.height;
       }, 0);
     };
 
+    debouncedWatch([function () {
+      return props.mode;
+    }, function () {
+      return props.prev;
+    }, function () {
+      return props.current;
+    }, function () {
+      return props.folding;
+    }], function () {
+      return vue.nextTick(setMeta);
+    }, {
+      debounce: props.inputDelay,
+      immediate: true
+    });
     vue.onMounted(function () {
       var _viewer$value;
 
       if (!scrollOptions.value) return;
       (_viewer$value = viewer.value) === null || _viewer$value === void 0 ? void 0 : _viewer$value.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay));
-      debouncedWatch([function () {
-        return props.mode;
-      }, function () {
-        return props.prev;
-      }, function () {
-        return props.current;
-      }], function () {
-        return vue.nextTick(setMeta);
-      }, {
-        debounce: props.inputDelay,
-        immediate: true
-      });
     });
     vue.onBeforeUnmount(function () {
       var _viewer$value2;
@@ -9541,6 +9549,10 @@
         type: String,
         required: true
       },
+      folding: {
+        type: Boolean,
+        default: false
+      },
       language: {
         type: String,
         required: true
@@ -9571,6 +9583,9 @@
           minHeight: props.scrollOptions.lineMinHeight + 'px'
         };
       });
+      var isFoldLine = vue.computed(function () {
+        return props.folding && props.render[0].type === 'equal';
+      });
 
       var setCode = function setCode(line, render, index) {
         if (!line.value) return '\n'; // Compare lines when render, index properties exist and has chkWords value in line property
@@ -9598,12 +9613,37 @@
 
       return {
         line: line,
+        isFoldLine: isFoldLine,
         rendered: rendered,
         rowStyle: rowStyle,
         setCode: setCode
       };
     }
   });
+
+  var _hoisted_1 = /*#__PURE__*/vue.createVNode("div", {
+    class: "lineNum vue-diff-cell-fold"
+  }, null, -1
+  /* HOISTED */
+  );
+
+  var _hoisted_2 = /*#__PURE__*/vue.createVNode("div", {
+    class: "code vue-diff-cell-fold"
+  }, null, -1
+  /* HOISTED */
+  );
+
+  var _hoisted_3 = /*#__PURE__*/vue.createVNode("div", {
+    class: "lineNum vue-diff-cell-fold"
+  }, null, -1
+  /* HOISTED */
+  );
+
+  var _hoisted_4 = /*#__PURE__*/vue.createVNode("div", {
+    class: "code vue-diff-cell-fold"
+  }, null, -1
+  /* HOISTED */
+  );
 
   function render$1(_ctx, _cache, $props, $setup, $data, $options) {
     var _component_Code = vue.resolveComponent("Code");
@@ -9617,6 +9657,12 @@
     }, vue.renderList(_ctx.render, function (line, index) {
       return vue.openBlock(), vue.createBlock(vue.Fragment, {
         key: index
+      }, [_ctx.isFoldLine ? (vue.openBlock(), vue.createBlock(vue.Fragment, {
+        key: 0
+      }, [_hoisted_1, _hoisted_2], 64
+      /* STABLE_FRAGMENT */
+      )) : (vue.openBlock(), vue.createBlock(vue.Fragment, {
+        key: 1
       }, [vue.createVNode("div", {
         class: ["lineNum", "vue-diff-cell-".concat(line.type)]
       }, vue.toDisplayString(line.lineNum), 3
@@ -9634,10 +9680,18 @@
       /* CLASS */
       )], 64
       /* STABLE_FRAGMENT */
+      ))], 64
+      /* STABLE_FRAGMENT */
       );
     }), 128
     /* KEYED_FRAGMENT */
     )) : vue.createCommentVNode("v-if", true), vue.createCommentVNode(" // split view "), vue.createCommentVNode(" unified view "), _ctx.mode === 'unified' ? (vue.openBlock(), vue.createBlock(vue.Fragment, {
+      key: 1
+    }, [_ctx.isFoldLine ? (vue.openBlock(), vue.createBlock(vue.Fragment, {
+      key: 0
+    }, [_hoisted_3, _hoisted_4], 64
+    /* STABLE_FRAGMENT */
+    )) : (vue.openBlock(), vue.createBlock(vue.Fragment, {
       key: 1
     }, [vue.createVNode("div", {
       class: ["lineNum", "vue-diff-cell-".concat(_ctx.render[0].type)]
@@ -9655,6 +9709,8 @@
     , ["language", "code", "scrollOptions", "onRendered"])], 2
     /* CLASS */
     )], 64
+    /* STABLE_FRAGMENT */
+    ))], 64
     /* STABLE_FRAGMENT */
     )) : vue.createCommentVNode("v-if", true), vue.createCommentVNode(" // unified view ")], 6
     /* CLASS, STYLE */
@@ -9689,6 +9745,10 @@
         type: String,
         default: ''
       },
+      folding: {
+        type: Boolean,
+        default: false
+      },
       inputDelay: {
         type: Number,
         default: 0
@@ -9712,7 +9772,7 @@
       var _useRender = useRender(props, viewer, scrollOptions),
           meta = _useRender.meta,
           render = _useRender.render,
-          visible = _useRender.visible;
+          list = _useRender.list;
 
       var _useVirtualScroll = useVirtualScroll(props, viewer, scrollOptions, meta),
           minHeight = _useVirtualScroll.minHeight;
@@ -9724,13 +9784,13 @@
       };
 
       return {
+        list: list,
         meta: meta,
         minHeight: minHeight,
         render: render,
         scrollOptions: scrollOptions,
         setLineHeight: setLineHeight,
-        viewer: viewer,
-        visible: visible
+        viewer: viewer
       };
     }
   });
@@ -9751,10 +9811,11 @@
       style: {
         minHeight: _ctx.minHeight
       }
-    }, [(vue.openBlock(true), vue.createBlock(vue.Fragment, null, vue.renderList(_ctx.visible, function (data, index) {
+    }, [(vue.openBlock(true), vue.createBlock(vue.Fragment, null, vue.renderList(_ctx.list, function (data, index) {
       return vue.openBlock(), vue.createBlock(_component_Line, {
         key: index,
         mode: _ctx.mode,
+        folding: _ctx.folding,
         language: _ctx.language,
         meta: _ctx.meta[data.index],
         render: _ctx.render[data.index],
@@ -9762,7 +9823,7 @@
         onSetLineHeight: _ctx.setLineHeight
       }, null, 8
       /* PROPS */
-      , ["mode", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]);
+      , ["mode", "folding", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]);
     }), 128
     /* KEYED_FRAGMENT */
     ))], 4

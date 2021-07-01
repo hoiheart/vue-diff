@@ -5,6 +5,10 @@ declare const _default: import("vue").DefineComponent<{
         type: PropType<Mode>;
         required: true;
     };
+    folding: {
+        type: BooleanConstructor;
+        default: boolean;
+    };
     language: {
         type: StringConstructor;
         required: true;
@@ -23,6 +27,7 @@ declare const _default: import("vue").DefineComponent<{
     };
 }, {
     line: import("vue").Ref<HTMLElement | null>;
+    isFoldLine: import("vue").ComputedRef<boolean>;
     rendered: () => void;
     rowStyle: import("vue").ComputedRef<{
         position: string;
@@ -34,11 +39,13 @@ declare const _default: import("vue").DefineComponent<{
     setCode: (line: Line, render?: Lines | undefined, index?: number | undefined) => string;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, Record<string, any>, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<{
     mode: Mode;
+    folding: boolean;
     language: string;
     meta: Meta;
     render: Lines;
     scrollOptions: false | VirtualScroll;
 } & {}>, {
+    folding: boolean;
     scrollOptions: false | VirtualScroll;
 }>;
 export default _default;

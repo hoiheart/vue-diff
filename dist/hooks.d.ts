@@ -6,12 +6,14 @@ interface Props {
     language: string;
     prev: string;
     current: string;
+    folding: boolean;
     inputDelay: number;
     virtualScroll: boolean | VirtualScroll;
 }
 export declare const useRender: (props: Props, viewer: Ref<null | HTMLElement>, scrollOptions: ComputedRef<false | VirtualScroll>) => {
     meta: Ref<{
         index: number;
+        foldable: boolean;
         visible: boolean;
         top?: number | undefined;
         height?: number | undefined;
@@ -23,8 +25,9 @@ export declare const useRender: (props: Props, viewer: Ref<null | HTMLElement>, 
         value?: string | undefined;
         chkWords?: boolean | undefined;
     }[][]>;
-    visible: ComputedRef<{
+    list: ComputedRef<{
         index: number;
+        foldable: boolean;
         visible: boolean;
         top?: number | undefined;
         height?: number | undefined;

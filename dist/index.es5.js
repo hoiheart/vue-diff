@@ -1,4 +1,4 @@
-import { watch, unref, getCurrentInstance, onUnmounted, ref, computed, onMounted, nextTick, onBeforeUnmount, defineComponent, openBlock, createBlock, createVNode, resolveComponent, createCommentVNode, Fragment, renderList, toDisplayString, toRaw } from 'vue';
+import { watch, unref, getCurrentInstance, onUnmounted, ref, computed, nextTick, onMounted, onBeforeUnmount, defineComponent, openBlock, createBlock, createVNode, resolveComponent, createCommentVNode, Fragment, renderList, toDisplayString, toRaw } from 'vue';
 
 var fails = function (exec) {
   try {
@@ -9349,9 +9349,9 @@ var setHighlightCode = function setHighlightCode(_ref) {
 var useRender = function useRender(props, viewer, scrollOptions) {
   var render = ref([]);
   var meta = ref([]);
-  var visible = computed(function () {
+  var list = computed(function () {
     return meta.value.filter(function (item) {
-      return item.visible;
+      return props.folding ? !item.foldable && item.visible : item.visible;
     });
   });
 
@@ -9360,20 +9360,24 @@ var useRender = function useRender(props, viewer, scrollOptions) {
     render.value = result;
     meta.value.splice(render.value.length);
     render.value.map(function (v, index) {
+      var _render$value;
+
       var item = meta.value[index];
+      var foldable = props.folding && v[0].type === 'equal' && ((_render$value = render.value[index - 1]) === null || _render$value === void 0 ? void 0 : _render$value[0].type) === 'equal';
+      var values = {
+        index: index,
+        foldable: foldable,
+        visible: true
+      };
 
       if (scrollOptions.value) {
-        meta.value[index] = {
-          index: index,
+        meta.value[index] = _objectSpread2(_objectSpread2({}, values), {}, {
           visible: (item === null || item === void 0 ? void 0 : item.visible) || false,
           top: (item === null || item === void 0 ? void 0 : item.top) || undefined,
           height: (item === null || item === void 0 ? void 0 : item.height) || scrollOptions.value.lineMinHeight
-        };
+        });
       } else {
-        meta.value[index] = {
-          index: index,
-          visible: true
-        };
+        meta.value[index] = _objectSpread2({}, values);
       }
     });
   };
@@ -9384,6 +9388,8 @@ var useRender = function useRender(props, viewer, scrollOptions) {
     return props.prev;
   }, function () {
     return props.current;
+  }, function () {
+    return props.folding;
   }], setRender, {
     debounce: props.inputDelay,
     immediate: true
@@ -9391,7 +9397,7 @@ var useRender = function useRender(props, viewer, scrollOptions) {
   return {
     meta: meta,
     render: render,
-    visible: visible
+    list: list
   };
 };
 var useVirtualScroll = function useVirtualScroll(props, viewer, scrollOptions, meta) {
@@ -9399,7 +9405,7 @@ var useVirtualScroll = function useVirtualScroll(props, viewer, scrollOptions, m
     if (!scrollOptions.value) return undefined;
     var reduce = meta.value.reduce(function (acc, curr) {
       curr.top = acc;
-      return acc + curr.height;
+      return curr.foldable ? acc : acc + curr.height;
     }, 0);
     return reduce + 'px';
   });
@@ -9418,27 +9424,29 @@ var useVirtualScroll = function useVirtualScroll(props, viewer, scrollOptions, m
       }
 
       curr.top = acc;
-      return acc + curr.height;
+      return curr.foldable ? acc : acc + curr.height;
     }, 0);
   };
 
+  debouncedWatch([function () {
+    return props.mode;
+  }, function () {
+    return props.prev;
+  }, function () {
+    return props.current;
+  }, function () {
+    return props.folding;
+  }], function () {
+    return nextTick(setMeta);
+  }, {
+    debounce: props.inputDelay,
+    immediate: true
+  });
   onMounted(function () {
     var _viewer$value;
 
     if (!scrollOptions.value) return;
     (_viewer$value = viewer.value) === null || _viewer$value === void 0 ? void 0 : _viewer$value.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay));
-    debouncedWatch([function () {
-      return props.mode;
-    }, function () {
-      return props.prev;
-    }, function () {
-      return props.current;
-    }], function () {
-      return nextTick(setMeta);
-    }, {
-      debounce: props.inputDelay,
-      immediate: true
-    });
   });
   onBeforeUnmount(function () {
     var _viewer$value2;
@@ -9537,6 +9545,10 @@ var script$1 = defineComponent({
       type: String,
       required: true
     },
+    folding: {
+      type: Boolean,
+      default: false
+    },
     language: {
       type: String,
       required: true
@@ -9567,6 +9579,9 @@ var script$1 = defineComponent({
         minHeight: props.scrollOptions.lineMinHeight + 'px'
       };
     });
+    var isFoldLine = computed(function () {
+      return props.folding && props.render[0].type === 'equal';
+    });
 
     var setCode = function setCode(line, render, index) {
       if (!line.value) return '\n'; // Compare lines when render, index properties exist and has chkWords value in line property
@@ -9594,12 +9609,37 @@ var script$1 = defineComponent({
 
     return {
       line: line,
+      isFoldLine: isFoldLine,
       rendered: rendered,
       rowStyle: rowStyle,
       setCode: setCode
     };
   }
 });
+
+var _hoisted_1 = /*#__PURE__*/createVNode("div", {
+  class: "lineNum vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
+
+var _hoisted_2 = /*#__PURE__*/createVNode("div", {
+  class: "code vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
+
+var _hoisted_3 = /*#__PURE__*/createVNode("div", {
+  class: "lineNum vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
+
+var _hoisted_4 = /*#__PURE__*/createVNode("div", {
+  class: "code vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
 
 function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_Code = resolveComponent("Code");
@@ -9613,6 +9653,12 @@ function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, renderList(_ctx.render, function (line, index) {
     return openBlock(), createBlock(Fragment, {
       key: index
+    }, [_ctx.isFoldLine ? (openBlock(), createBlock(Fragment, {
+      key: 0
+    }, [_hoisted_1, _hoisted_2], 64
+    /* STABLE_FRAGMENT */
+    )) : (openBlock(), createBlock(Fragment, {
+      key: 1
     }, [createVNode("div", {
       class: ["lineNum", "vue-diff-cell-".concat(line.type)]
     }, toDisplayString(line.lineNum), 3
@@ -9630,10 +9676,18 @@ function render$1(_ctx, _cache, $props, $setup, $data, $options) {
     /* CLASS */
     )], 64
     /* STABLE_FRAGMENT */
+    ))], 64
+    /* STABLE_FRAGMENT */
     );
   }), 128
   /* KEYED_FRAGMENT */
   )) : createCommentVNode("v-if", true), createCommentVNode(" // split view "), createCommentVNode(" unified view "), _ctx.mode === 'unified' ? (openBlock(), createBlock(Fragment, {
+    key: 1
+  }, [_ctx.isFoldLine ? (openBlock(), createBlock(Fragment, {
+    key: 0
+  }, [_hoisted_3, _hoisted_4], 64
+  /* STABLE_FRAGMENT */
+  )) : (openBlock(), createBlock(Fragment, {
     key: 1
   }, [createVNode("div", {
     class: ["lineNum", "vue-diff-cell-".concat(_ctx.render[0].type)]
@@ -9651,6 +9705,8 @@ function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   , ["language", "code", "scrollOptions", "onRendered"])], 2
   /* CLASS */
   )], 64
+  /* STABLE_FRAGMENT */
+  ))], 64
   /* STABLE_FRAGMENT */
   )) : createCommentVNode("v-if", true), createCommentVNode(" // unified view ")], 6
   /* CLASS, STYLE */
@@ -9685,6 +9741,10 @@ var script = defineComponent({
       type: String,
       default: ''
     },
+    folding: {
+      type: Boolean,
+      default: false
+    },
     inputDelay: {
       type: Number,
       default: 0
@@ -9708,7 +9768,7 @@ var script = defineComponent({
     var _useRender = useRender(props, viewer, scrollOptions),
         meta = _useRender.meta,
         render = _useRender.render,
-        visible = _useRender.visible;
+        list = _useRender.list;
 
     var _useVirtualScroll = useVirtualScroll(props, viewer, scrollOptions, meta),
         minHeight = _useVirtualScroll.minHeight;
@@ -9720,13 +9780,13 @@ var script = defineComponent({
     };
 
     return {
+      list: list,
       meta: meta,
       minHeight: minHeight,
       render: render,
       scrollOptions: scrollOptions,
       setLineHeight: setLineHeight,
-      viewer: viewer,
-      visible: visible
+      viewer: viewer
     };
   }
 });
@@ -9747,10 +9807,11 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     style: {
       minHeight: _ctx.minHeight
     }
-  }, [(openBlock(true), createBlock(Fragment, null, renderList(_ctx.visible, function (data, index) {
+  }, [(openBlock(true), createBlock(Fragment, null, renderList(_ctx.list, function (data, index) {
     return openBlock(), createBlock(_component_Line, {
       key: index,
       mode: _ctx.mode,
+      folding: _ctx.folding,
       language: _ctx.language,
       meta: _ctx.meta[data.index],
       render: _ctx.render[data.index],
@@ -9758,7 +9819,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onSetLineHeight: _ctx.setLineHeight
     }, null, 8
     /* PROPS */
-    , ["mode", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]);
+    , ["mode", "folding", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]);
   }), 128
   /* KEYED_FRAGMENT */
   ))], 4

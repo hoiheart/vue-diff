@@ -1,4 +1,4 @@
-import { watch, unref, getCurrentInstance, onUnmounted, ref, computed, onMounted, nextTick, onBeforeUnmount, defineComponent, openBlock, createBlock, createVNode, resolveComponent, createCommentVNode, Fragment, renderList, toDisplayString, toRaw } from 'vue';
+import { watch, unref, getCurrentInstance, onUnmounted, ref, computed, nextTick, onMounted, onBeforeUnmount, defineComponent, openBlock, createBlock, createVNode, resolveComponent, createCommentVNode, Fragment, renderList, toDisplayString, toRaw } from 'vue';
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
@@ -6931,39 +6931,46 @@ const setHighlightCode = ({
 const useRender = (props, viewer, scrollOptions) => {
   const render = ref([]);
   const meta = ref([]);
-  const visible = computed(() => meta.value.filter(item => item.visible));
+  const list = computed(() => meta.value.filter(item => {
+    return props.folding ? !item.foldable && item.visible : item.visible;
+  }));
 
   const setRender = () => {
     const result = renderLines(props.mode, props.prev, props.current);
     render.value = result;
     meta.value.splice(render.value.length);
     render.value.map((v, index) => {
+      var _render$value;
+
       const item = meta.value[index];
+      const foldable = props.folding && v[0].type === 'equal' && ((_render$value = render.value[index - 1]) === null || _render$value === void 0 ? void 0 : _render$value[0].type) === 'equal';
+      const values = {
+        index,
+        foldable,
+        visible: true
+      };
 
       if (scrollOptions.value) {
-        meta.value[index] = {
-          index,
+        meta.value[index] = { ...values,
           visible: (item === null || item === void 0 ? void 0 : item.visible) || false,
           top: (item === null || item === void 0 ? void 0 : item.top) || undefined,
           height: (item === null || item === void 0 ? void 0 : item.height) || scrollOptions.value.lineMinHeight
         };
       } else {
-        meta.value[index] = {
-          index,
-          visible: true
+        meta.value[index] = { ...values
         };
       }
     });
   };
 
-  debouncedWatch([() => props.mode, () => props.prev, () => props.current], setRender, {
+  debouncedWatch([() => props.mode, () => props.prev, () => props.current, () => props.folding], setRender, {
     debounce: props.inputDelay,
     immediate: true
   });
   return {
     meta,
     render,
-    visible
+    list
   };
 };
 
@@ -6972,7 +6979,7 @@ const useVirtualScroll = (props, viewer, scrollOptions, meta) => {
     if (!scrollOptions.value) return undefined;
     const reduce = meta.value.reduce((acc, curr) => {
       curr.top = acc;
-      return acc + curr.height;
+      return curr.foldable ? acc : acc + curr.height;
     }, 0);
     return reduce + 'px';
   });
@@ -6991,19 +6998,19 @@ const useVirtualScroll = (props, viewer, scrollOptions, meta) => {
       }
 
       curr.top = acc;
-      return acc + curr.height;
+      return curr.foldable ? acc : acc + curr.height;
     }, 0);
   };
 
+  debouncedWatch([() => props.mode, () => props.prev, () => props.current, () => props.folding], () => nextTick(setMeta), {
+    debounce: props.inputDelay,
+    immediate: true
+  });
   onMounted(() => {
     var _viewer$value;
 
     if (!scrollOptions.value) return;
     (_viewer$value = viewer.value) === null || _viewer$value === void 0 ? void 0 : _viewer$value.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay));
-    debouncedWatch([() => props.mode, () => props.prev, () => props.current], () => nextTick(setMeta), {
-      debounce: props.inputDelay,
-      immediate: true
-    });
   });
   onBeforeUnmount(() => {
     var _viewer$value2;
@@ -7094,6 +7101,10 @@ var script$1 = defineComponent({
       type: String,
       required: true
     },
+    folding: {
+      type: Boolean,
+      default: false
+    },
     language: {
       type: String,
       required: true
@@ -7126,6 +7137,7 @@ var script$1 = defineComponent({
         minHeight: props.scrollOptions.lineMinHeight + 'px'
       };
     });
+    const isFoldLine = computed(() => props.folding && props.render[0].type === 'equal');
 
     const setCode = (line, render, index) => {
       if (!line.value) return '\n'; // Compare lines when render, index properties exist and has chkWords value in line property
@@ -7153,6 +7165,7 @@ var script$1 = defineComponent({
 
     return {
       line,
+      isFoldLine,
       rendered,
       rowStyle,
       setCode
@@ -7160,6 +7173,30 @@ var script$1 = defineComponent({
   }
 
 });
+
+const _hoisted_1 = /*#__PURE__*/createVNode("div", {
+  class: "lineNum vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
+
+const _hoisted_2 = /*#__PURE__*/createVNode("div", {
+  class: "code vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
+
+const _hoisted_3 = /*#__PURE__*/createVNode("div", {
+  class: "lineNum vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
+
+const _hoisted_4 = /*#__PURE__*/createVNode("div", {
+  class: "code vue-diff-cell-fold"
+}, null, -1
+/* HOISTED */
+);
 
 function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Code = resolveComponent("Code");
@@ -7173,6 +7210,12 @@ function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, renderList(_ctx.render, (line, index) => {
     return openBlock(), createBlock(Fragment, {
       key: index
+    }, [_ctx.isFoldLine ? (openBlock(), createBlock(Fragment, {
+      key: 0
+    }, [_hoisted_1, _hoisted_2], 64
+    /* STABLE_FRAGMENT */
+    )) : (openBlock(), createBlock(Fragment, {
+      key: 1
     }, [createVNode("div", {
       class: ["lineNum", `vue-diff-cell-${line.type}`]
     }, toDisplayString(line.lineNum), 3
@@ -7190,10 +7233,18 @@ function render$1(_ctx, _cache, $props, $setup, $data, $options) {
     /* CLASS */
     )], 64
     /* STABLE_FRAGMENT */
+    ))], 64
+    /* STABLE_FRAGMENT */
     );
   }), 128
   /* KEYED_FRAGMENT */
   )) : createCommentVNode("v-if", true), createCommentVNode(" // split view "), createCommentVNode(" unified view "), _ctx.mode === 'unified' ? (openBlock(), createBlock(Fragment, {
+    key: 1
+  }, [_ctx.isFoldLine ? (openBlock(), createBlock(Fragment, {
+    key: 0
+  }, [_hoisted_3, _hoisted_4], 64
+  /* STABLE_FRAGMENT */
+  )) : (openBlock(), createBlock(Fragment, {
     key: 1
   }, [createVNode("div", {
     class: ["lineNum", `vue-diff-cell-${_ctx.render[0].type}`]
@@ -7211,6 +7262,8 @@ function render$1(_ctx, _cache, $props, $setup, $data, $options) {
   , ["language", "code", "scrollOptions", "onRendered"])], 2
   /* CLASS */
   )], 64
+  /* STABLE_FRAGMENT */
+  ))], 64
   /* STABLE_FRAGMENT */
   )) : createCommentVNode("v-if", true), createCommentVNode(" // unified view ")], 6
   /* CLASS, STYLE */
@@ -7244,6 +7297,10 @@ var script = defineComponent({
       type: String,
       default: ''
     },
+    folding: {
+      type: Boolean,
+      default: false
+    },
     inputDelay: {
       type: Number,
       default: 0
@@ -7268,7 +7325,7 @@ var script = defineComponent({
     const {
       meta,
       render,
-      visible
+      list
     } = useRender(props, viewer, scrollOptions);
     const {
       minHeight
@@ -7281,13 +7338,13 @@ var script = defineComponent({
     };
 
     return {
+      list,
       meta,
       minHeight,
       render,
       scrollOptions,
       setLineHeight,
-      viewer,
-      visible
+      viewer
     };
   }
 
@@ -7309,10 +7366,11 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     style: {
       minHeight: _ctx.minHeight
     }
-  }, [(openBlock(true), createBlock(Fragment, null, renderList(_ctx.visible, (data, index) => {
+  }, [(openBlock(true), createBlock(Fragment, null, renderList(_ctx.list, (data, index) => {
     return openBlock(), createBlock(_component_Line, {
       key: index,
       mode: _ctx.mode,
+      folding: _ctx.folding,
       language: _ctx.language,
       meta: _ctx.meta[data.index],
       render: _ctx.render[data.index],
@@ -7320,7 +7378,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       onSetLineHeight: _ctx.setLineHeight
     }, null, 8
     /* PROPS */
-    , ["mode", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]);
+    , ["mode", "folding", "language", "meta", "render", "scrollOptions", "onSetLineHeight"]);
   }), 128
   /* KEYED_FRAGMENT */
   ))], 4

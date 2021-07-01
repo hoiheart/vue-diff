@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .vue-diff-wrapper {
   overflow: hidden;
   width: 100%;
@@ -187,6 +188,20 @@
 }
 .vue-diff-viewer .vue-diff-row .vue-diff-cell-disabled {
   background-color: rgba(128, 128, 128, 0.1);
+}
+.vue-diff-viewer .vue-diff-row .vue-diff-cell-fold.lineNum {
+  opacity: 0.8;
+  font-size: 0.8em;
+}
+.vue-diff-viewer .vue-diff-row .vue-diff-cell-fold.lineNum:before {
+  content: ">";
+}
+.vue-diff-viewer .vue-diff-row .vue-diff-cell-fold.code {
+  text-align: center;
+}
+.vue-diff-viewer .vue-diff-row .vue-diff-cell-fold.code:before {
+  color: #999;
+  content: "⋯⋯";
 }
 .vue-diff-viewer .vue-diff-row pre {
   display: block;

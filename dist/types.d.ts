@@ -16,6 +16,7 @@ export declare type Lines = Array<Line>;
 export declare type Diffs = Array<Diff>;
 export interface Meta {
     index: number;
+    foldable: boolean;
     visible: boolean;
     top?: number;
     height?: number;
