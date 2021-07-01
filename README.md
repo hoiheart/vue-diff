@@ -36,6 +36,7 @@ Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target
 * Support multiple languages and can be extended
 * Support two themes (dark / light) and can be customized
 * Virtual scroll for large text comparison
+* Folding view (*Partial folding is not supported*)
 
 ## Install plugin
 
@@ -93,6 +94,7 @@ Insert the diff component with props.
     :language="language"
     :prev="prev"
     :current="current"
+    :folding="folding"
     :input-delay="0"
     :virtual-scroll="{ height: 500, lineMinHeight: 24, delay: 100 }"
   />
@@ -108,6 +110,7 @@ Insert the diff component with props.
 | language | `string` | `plaintext` |  | See <a href="#extend-languages">Extend languages</a>
 | prev | `string` | `''` |  | Prev code |
 | current | `string` | `''` |  | Current Code |
+| folding | `boolean` | `false` |  | Folding not different |
 | inputDelay | `number` | `0` |  | Setting up rendering debounce for changes for performance benefit (mode, prev, curr) |
 | virtualScroll | `boolean\|object` | `false` |  | *Default value when setting true :*<br>`{ height: 500, lineMinHeight: 24, delay: 100 }`<br>See <a href="#virtual-scroll">virtual scroll</a> |
 

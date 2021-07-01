@@ -7,33 +7,45 @@
     <!-- split view -->
     <template v-if="mode === 'split'">
       <template :key="index" v-for="(line, index) in render">
-        <div class="lineNum" :class="`vue-diff-cell-${line.type}`">
-          {{ line.lineNum }}
-        </div>
-        <div class="code" :class="`vue-diff-cell-${line.type}`">
-          <Code
-            :language="language"
-            :code="setCode(line, render, index)"
-            :scrollOptions="scrollOptions"
-            @rendered="rendered"
-          />
-        </div>
+        <template v-if="isFoldLine">
+          <div class="lineNum vue-diff-cell-fold"></div>
+          <div class="code vue-diff-cell-fold"></div>
+        </template>
+        <template v-else>
+          <div class="lineNum" :class="`vue-diff-cell-${line.type}`">
+            {{ line.lineNum }}
+          </div>
+          <div class="code" :class="`vue-diff-cell-${line.type}`">
+            <Code
+              :language="language"
+              :code="setCode(line, render, index)"
+              :scrollOptions="scrollOptions"
+              @rendered="rendered"
+            />
+          </div>
+        </template>
       </template>
     </template>
     <!-- // split view -->
     <!-- unified view -->
     <template v-if="mode === 'unified'">
-      <div class="lineNum" :class="`vue-diff-cell-${render[0].type}`">
-        {{ render[0].lineNum }}
-      </div>
-      <div class="code" :class="`vue-diff-cell-${render[0].type}`">
-        <Code
-          :language="language"
-          :code="setCode(render[0])"
-          :scrollOptions="scrollOptions"
-          @rendered="rendered"
-        />
-      </div>
+      <template v-if="isFoldLine">
+        <div class="lineNum vue-diff-cell-fold"></div>
+        <div class="code vue-diff-cell-fold"></div>
+      </template>
+      <template v-else>
+        <div class="lineNum" :class="`vue-diff-cell-${render[0].type}`">
+          {{ render[0].lineNum }}
+        </div>
+        <div class="code" :class="`vue-diff-cell-${render[0].type}`">
+          <Code
+            :language="language"
+            :code="setCode(render[0])"
+            :scrollOptions="scrollOptions"
+            @rendered="rendered"
+          />
+        </div>
+      </template>
     </template>
     <!-- // unified view -->
   </div>
@@ -56,6 +68,10 @@ export default defineComponent({
     mode: {
       type: String as PropType<Mode>,
       required: true
+    },
+    folding: {
+      type: Boolean,
+      default: false
     },
     language: {
       type: String,
@@ -86,6 +102,7 @@ export default defineComponent({
         minHeight: props.scrollOptions.lineMinHeight + 'px'
       }
     })
+    const isFoldLine = computed(() => props.folding && props.render[0].type === 'equal')
 
     const setCode = (line: Line, render?: Lines, index?: number) => {
       if (!line.value) return '\n'
@@ -114,7 +131,7 @@ export default defineComponent({
       }, props.scrollOptions.delay))
     }
 
-    return { line, rendered, rowStyle, setCode }
+    return { line, isFoldLine, rendered, rowStyle, setCode }
   }
 })
 </script>

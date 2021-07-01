@@ -11,6 +11,7 @@ interface Props {
   language: string;
   prev: string;
   current: string;
+  folding: boolean;
   inputDelay: number;
   virtualScroll: boolean|VirtualScroll;
 }
@@ -18,7 +19,9 @@ interface Props {
 export const useRender = (props: Props, viewer: Ref<null|HTMLElement>, scrollOptions: ComputedRef<false|VirtualScroll>) => {
   const render = ref<Array<Lines>>([])
   const meta = ref<Array<Meta>>([])
-  const visible = computed(() => meta.value.filter(item => item.visible))
+  const list = computed(() => meta.value.filter(item => {
+    return props.folding ? !item.foldable && item.visible : item.visible
+  }))
 
   const setRender = () => {
     const result = renderLines(props.mode, props.prev, props.current)
@@ -27,25 +30,29 @@ export const useRender = (props: Props, viewer: Ref<null|HTMLElement>, scrollOpt
 
     render.value.map((v, index: number) => {
       const item = meta.value[index]
+      const foldable = props.folding && v[0].type === 'equal' && render.value[index - 1]?.[0].type === 'equal'
+
+      const values = {
+        index,
+        foldable,
+        visible: true
+      }
 
       if (scrollOptions.value) {
         meta.value[index] = {
-          index,
+          ...values,
           visible: item?.visible || false,
           top: item?.top || undefined,
           height: item?.height || scrollOptions.value.lineMinHeight
         }
       } else {
-        meta.value[index] = {
-          index,
-          visible: true
-        }
+        meta.value[index] = { ...values }
       }
     })
   }
 
   debouncedWatch(
-    [() => props.mode, () => props.prev, () => props.current],
+    [() => props.mode, () => props.prev, () => props.current, () => props.folding],
     setRender,
     {
       debounce: props.inputDelay,
@@ -56,7 +63,7 @@ export const useRender = (props: Props, viewer: Ref<null|HTMLElement>, scrollOpt
   return {
     meta,
     render,
-    visible
+    list
   }
 }
 
@@ -65,7 +72,7 @@ export const useVirtualScroll = (props: Props, viewer: Ref<null|HTMLElement>, sc
     if (!scrollOptions.value) return undefined
     const reduce = meta.value.reduce((acc, curr) => {
       curr.top = acc
-      return acc + (curr.height as number)
+      return curr.foldable ? acc : acc + (curr.height as number)
     }, 0)
     return reduce + 'px'
   })
@@ -85,22 +92,22 @@ export const useVirtualScroll = (props: Props, viewer: Ref<null|HTMLElement>, sc
       }
 
       curr.top = acc
-      return acc + (curr.height as number)
+      return curr.foldable ? acc : acc + (curr.height as number)
     }, 0)
   }
+
+  debouncedWatch(
+    [() => props.mode, () => props.prev, () => props.current, () => props.folding],
+    () => nextTick(setMeta),
+    {
+      debounce: props.inputDelay,
+      immediate: true
+    }
+  )
 
   onMounted(() => {
     if (!scrollOptions.value) return
     viewer.value?.addEventListener('scroll', useThrottleFn(setMeta, scrollOptions.value.delay))
-
-    debouncedWatch(
-      [() => props.mode, () => props.prev, () => props.current],
-      () => nextTick(setMeta),
-      {
-        debounce: props.inputDelay,
-        immediate: true
-      }
-    )
   })
 
   onBeforeUnmount(() => {

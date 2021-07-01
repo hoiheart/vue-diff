@@ -13,9 +13,10 @@
         :style="{ minHeight }"
       >
         <Line
-          v-for="(data, index) in visible"
+          v-for="(data, index) in list"
           :key="index"
           :mode="mode"
+          :folding="folding"
           :language="language"
           :meta="meta[data.index]"
           :render="render[data.index]"
@@ -60,6 +61,10 @@ export default defineComponent({
       type: String,
       default: ''
     },
+    folding: {
+      type: Boolean,
+      default: false
+    },
     inputDelay: {
       type: Number,
       default: 0
@@ -80,7 +85,7 @@ export default defineComponent({
         ...(typeof props.virtualScroll === 'object' ? toRaw(props.virtualScroll) : {})
       }
     })
-    const { meta, render, visible } = useRender(props, viewer, scrollOptions)
+    const { meta, render, list } = useRender(props, viewer, scrollOptions)
     const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta)
 
     const setLineHeight = (index: number, height: number) => {
@@ -90,13 +95,13 @@ export default defineComponent({
     }
 
     return {
+      list,
       meta,
       minHeight,
       render,
       scrollOptions,
       setLineHeight,
-      viewer,
-      visible
+      viewer
     }
   }
 })
