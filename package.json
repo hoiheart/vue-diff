@@ -34,7 +34,7 @@
   "dependencies": {
     "@vueuse/core": "^4.7.0",
     "diff-match-patch": "^1.0.5",
-    "highlight.js": "^10.5.0"
+    "highlight.js": "^11.4.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.12.1",
@@ -113,6 +113,10 @@
             {
               "type": "style",
               "release": "patch"
+            },
+            {
+              "type": "build",
+              "release": "patch"
             }
           ]
         }
@@ -144,6 +148,11 @@
                 "type": "style",
                 "hidden": false,
                 "section": "Style"
+              },
+              {
+                "type": "build",
+                "hidden": false,
+                "section": "Build"
               },
               {
                 "type": "refactor",

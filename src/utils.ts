@@ -212,7 +212,7 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   const hasModifiedTags = code.match(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'))
 
   if (!hasModifiedTags) {
-    highlightCode.value = hljs.highlight(language, code).value
+    highlightCode.value = hljs.highlight(code, { language }).value
     return
   }
 
@@ -222,7 +222,7 @@ const setHighlightCode = ({ highlightCode, language, code }: { highlightCode: Re
   let originalCode = code // original code with modified tags
   const pureCode = code.replace(new RegExp(`(${MODIFIED_START_TAG}|${MODIFIED_CLOSE_TAG})`, 'g'), '') // Without modified tags
   let pureElement = document.createElement('div')
-  pureElement.innerHTML = hljs.highlight(language, pureCode).value // Highlight DOM without modified tags
+  pureElement.innerHTML = hljs.highlight(pureCode, { language }).value // Highlight DOM without modified tags
 
   // Modified span is created per highlight operator and causes it to continue
   let innerModifiedTag = false
