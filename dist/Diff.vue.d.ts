@@ -64,6 +64,15 @@ declare const _default: import("vue").DefineComponent<{
     setLineHeight: (index: number, height: number) => void;
     viewer: import("vue").Ref<HTMLElement | null>;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, Record<string, any>, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<{
+    mode?: unknown;
+    theme?: unknown;
+    language?: unknown;
+    prev?: unknown;
+    current?: unknown;
+    folding?: unknown;
+    inputDelay?: unknown;
+    virtualScroll?: unknown;
+} & {
     mode: Mode;
     theme: Theme;
     language: string;

@@ -6,132 +6,83 @@
 }
 
 .vue-diff-theme-dark {
-  /*
-  Monokai style - ported by Luigi Maselli - http://grigio.org
-  */
   background-color: #272822;
 }
-.vue-diff-theme-dark .hljs {
+.vue-diff-theme-dark pre code.hljs {
   display: block;
   overflow-x: auto;
-  padding: 0.5em;
+  padding: 1em;
+}
+.vue-diff-theme-dark code.hljs {
+  padding: 3px 5px;
+}
+.vue-diff-theme-dark .hljs {
   background: #272822;
   color: #ddd;
 }
-.vue-diff-theme-dark .hljs-tag,
-.vue-diff-theme-dark .hljs-keyword,
-.vue-diff-theme-dark .hljs-selector-tag,
-.vue-diff-theme-dark .hljs-literal,
-.vue-diff-theme-dark .hljs-strong,
-.vue-diff-theme-dark .hljs-name {
+.vue-diff-theme-dark .hljs-keyword, .vue-diff-theme-dark .hljs-literal, .vue-diff-theme-dark .hljs-name, .vue-diff-theme-dark .hljs-selector-tag, .vue-diff-theme-dark .hljs-strong, .vue-diff-theme-dark .hljs-tag {
   color: #f92672;
 }
 .vue-diff-theme-dark .hljs-code {
   color: #66d9ef;
 }
-.vue-diff-theme-dark .hljs-class .hljs-title {
-  color: white;
-}
-.vue-diff-theme-dark .hljs-attribute,
-.vue-diff-theme-dark .hljs-symbol,
-.vue-diff-theme-dark .hljs-regexp,
-.vue-diff-theme-dark .hljs-link {
+.vue-diff-theme-dark .hljs-attribute, .vue-diff-theme-dark .hljs-link, .vue-diff-theme-dark .hljs-regexp, .vue-diff-theme-dark .hljs-symbol {
   color: #bf79db;
 }
-.vue-diff-theme-dark .hljs-string,
-.vue-diff-theme-dark .hljs-bullet,
-.vue-diff-theme-dark .hljs-subst,
-.vue-diff-theme-dark .hljs-title,
-.vue-diff-theme-dark .hljs-section,
-.vue-diff-theme-dark .hljs-emphasis,
-.vue-diff-theme-dark .hljs-type,
-.vue-diff-theme-dark .hljs-built_in,
-.vue-diff-theme-dark .hljs-builtin-name,
-.vue-diff-theme-dark .hljs-selector-attr,
-.vue-diff-theme-dark .hljs-selector-pseudo,
-.vue-diff-theme-dark .hljs-addition,
-.vue-diff-theme-dark .hljs-variable,
-.vue-diff-theme-dark .hljs-template-tag,
-.vue-diff-theme-dark .hljs-template-variable {
+.vue-diff-theme-dark .hljs-addition, .vue-diff-theme-dark .hljs-built_in, .vue-diff-theme-dark .hljs-bullet, .vue-diff-theme-dark .hljs-emphasis, .vue-diff-theme-dark .hljs-section, .vue-diff-theme-dark .hljs-selector-attr, .vue-diff-theme-dark .hljs-selector-pseudo, .vue-diff-theme-dark .hljs-string, .vue-diff-theme-dark .hljs-subst, .vue-diff-theme-dark .hljs-template-tag, .vue-diff-theme-dark .hljs-template-variable, .vue-diff-theme-dark .hljs-title, .vue-diff-theme-dark .hljs-type, .vue-diff-theme-dark .hljs-variable {
   color: #a6e22e;
 }
-.vue-diff-theme-dark .hljs-comment,
-.vue-diff-theme-dark .hljs-quote,
-.vue-diff-theme-dark .hljs-deletion,
-.vue-diff-theme-dark .hljs-meta {
+.vue-diff-theme-dark .hljs-class .hljs-title, .vue-diff-theme-dark .hljs-title.class_ {
+  color: #fff;
+}
+.vue-diff-theme-dark .hljs-comment, .vue-diff-theme-dark .hljs-deletion, .vue-diff-theme-dark .hljs-meta, .vue-diff-theme-dark .hljs-quote {
   color: #75715e;
 }
-.vue-diff-theme-dark .hljs-keyword,
-.vue-diff-theme-dark .hljs-selector-tag,
-.vue-diff-theme-dark .hljs-literal,
-.vue-diff-theme-dark .hljs-doctag,
-.vue-diff-theme-dark .hljs-title,
-.vue-diff-theme-dark .hljs-section,
-.vue-diff-theme-dark .hljs-type,
-.vue-diff-theme-dark .hljs-selector-id {
-  font-weight: bold;
+.vue-diff-theme-dark .hljs-doctag, .vue-diff-theme-dark .hljs-keyword, .vue-diff-theme-dark .hljs-literal, .vue-diff-theme-dark .hljs-section, .vue-diff-theme-dark .hljs-selector-id, .vue-diff-theme-dark .hljs-selector-tag, .vue-diff-theme-dark .hljs-title, .vue-diff-theme-dark .hljs-type {
+  font-weight: 700;
 }
 
 .vue-diff-theme-light {
-  /*
-
-  Visual Studio-like style based on original C# coloring by Jason Diamond <jason@diamond.name>
-
-  */
   background-color: #fff;
 }
-.vue-diff-theme-light .hljs {
+.vue-diff-theme-light pre code.hljs {
   display: block;
   overflow-x: auto;
-  padding: 0.5em;
-  background: white;
-  color: black;
+  padding: 1em;
 }
-.vue-diff-theme-light .hljs-comment,
-.vue-diff-theme-light .hljs-quote,
-.vue-diff-theme-light .hljs-variable {
-  color: #008000;
+.vue-diff-theme-light code.hljs {
+  padding: 3px 5px;
 }
-.vue-diff-theme-light .hljs-keyword,
-.vue-diff-theme-light .hljs-selector-tag,
-.vue-diff-theme-light .hljs-built_in,
-.vue-diff-theme-light .hljs-name,
-.vue-diff-theme-light .hljs-tag {
+.vue-diff-theme-light .hljs {
+  background: #fff;
+  color: #000;
+}
+.vue-diff-theme-light .hljs-comment, .vue-diff-theme-light .hljs-quote, .vue-diff-theme-light .hljs-variable {
+  color: green;
+}
+.vue-diff-theme-light .hljs-built_in, .vue-diff-theme-light .hljs-keyword, .vue-diff-theme-light .hljs-name, .vue-diff-theme-light .hljs-selector-tag, .vue-diff-theme-light .hljs-tag {
   color: #00f;
 }
-.vue-diff-theme-light .hljs-string,
-.vue-diff-theme-light .hljs-title,
-.vue-diff-theme-light .hljs-section,
-.vue-diff-theme-light .hljs-attribute,
-.vue-diff-theme-light .hljs-literal,
-.vue-diff-theme-light .hljs-template-tag,
-.vue-diff-theme-light .hljs-template-variable,
-.vue-diff-theme-light .hljs-type,
-.vue-diff-theme-light .hljs-addition {
+.vue-diff-theme-light .hljs-addition, .vue-diff-theme-light .hljs-attribute, .vue-diff-theme-light .hljs-literal, .vue-diff-theme-light .hljs-section, .vue-diff-theme-light .hljs-string, .vue-diff-theme-light .hljs-template-tag, .vue-diff-theme-light .hljs-template-variable, .vue-diff-theme-light .hljs-title, .vue-diff-theme-light .hljs-type {
   color: #a31515;
 }
-.vue-diff-theme-light .hljs-deletion,
-.vue-diff-theme-light .hljs-selector-attr,
-.vue-diff-theme-light .hljs-selector-pseudo,
-.vue-diff-theme-light .hljs-meta {
+.vue-diff-theme-light .hljs-deletion, .vue-diff-theme-light .hljs-meta, .vue-diff-theme-light .hljs-selector-attr, .vue-diff-theme-light .hljs-selector-pseudo {
   color: #2b91af;
 }
 .vue-diff-theme-light .hljs-doctag {
-  color: #808080;
+  color: grey;
 }
 .vue-diff-theme-light .hljs-attr {
-  color: #f00;
+  color: red;
 }
-.vue-diff-theme-light .hljs-symbol,
-.vue-diff-theme-light .hljs-bullet,
-.vue-diff-theme-light .hljs-link {
+.vue-diff-theme-light .hljs-bullet, .vue-diff-theme-light .hljs-link, .vue-diff-theme-light .hljs-symbol {
   color: #00b0e8;
 }
 .vue-diff-theme-light .hljs-emphasis {
   font-style: italic;
 }
 .vue-diff-theme-light .hljs-strong {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .vue-diff-viewer {

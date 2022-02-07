@@ -16,6 +16,10 @@ declare const _default: import("vue").DefineComponent<{
 }, {
     highlightCode: import("vue").Ref<string>;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, "rendered"[], "rendered", import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<{
+    language?: unknown;
+    code?: unknown;
+    scrollOptions?: unknown;
+} & {
     language: string;
     code: string;
     scrollOptions: false | VirtualScroll;

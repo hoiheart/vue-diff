@@ -38,6 +38,13 @@ declare const _default: import("vue").DefineComponent<{
     } | undefined>;
     setCode: (line: Line, render?: Lines | undefined, index?: number | undefined) => string;
 }, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, Record<string, any>, string, import("vue").VNodeProps & import("vue").AllowedComponentProps & import("vue").ComponentCustomProps, Readonly<{
+    mode?: unknown;
+    folding?: unknown;
+    language?: unknown;
+    meta?: unknown;
+    render?: unknown;
+    scrollOptions?: unknown;
+} & {
     mode: Mode;
     folding: boolean;
     language: string;
