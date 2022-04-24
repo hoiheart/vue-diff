@@ -26,6 +26,6 @@ export default defineConfig({
   },
   plugins: [vue(), dts()],
   test: {
-    environment: 'happy-dom',
+    environment: 'jsdom',
   },
 });
