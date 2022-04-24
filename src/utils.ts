@@ -336,6 +336,8 @@ const setHighlightCode = ({
     .replace(new RegExp(startEntity, 'g'), '<span class="modified">')
     .replace(new RegExp(closeEntity, 'g'), '</span>');
 
+  console.log(highlightCode.value);
+
   // @ts-ignore
   pureElement = null;
 };

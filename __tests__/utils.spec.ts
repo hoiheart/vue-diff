@@ -71,15 +71,15 @@ describe('Utils unit', () => {
     );
   });
 
-  // it('setHighlightCode', async () => {
-  //   const highlightCode = ref('');
+  it('setHighlightCode', async () => {
+    const highlightCode = ref('');
 
-  //   setHighlightCode({
-  //     highlightCode,
-  //     language: 'plaintext',
-  //     code: `a ${MODIFIED_START_TAG}c${MODIFIED_CLOSE_TAG} c`,
-  //   });
+    setHighlightCode({
+      highlightCode,
+      language: 'plaintext',
+      code: `a ${MODIFIED_START_TAG}c${MODIFIED_CLOSE_TAG} c`,
+    });
 
-  //   expect(highlightCode.value).toBe('a <span class="modified">c</span> c');
-  // });
+    expect(highlightCode.value).toBe('a <span class="modified">c</span> c');
+  });
 });
