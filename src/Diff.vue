@@ -6,12 +6,11 @@
     <div
       ref="viewer"
       class="vue-diff-viewer"
-      :style="{ height: scrollOptions ? scrollOptions.height + 'px' : undefined }"
+      :style="{
+        height: scrollOptions ? scrollOptions.height + 'px' : undefined,
+      }"
     >
-      <div
-        class="vue-diff-viewer-inner"
-        :style="{ minHeight }"
-      >
+      <div class="vue-diff-viewer-inner" :style="{ minHeight }">
         <Line
           v-for="(data, index) in list"
           :key="index"
@@ -29,70 +28,72 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRaw } from 'vue'
-import { useVirtualScroll, useRender } from './hooks'
-import Line from './Line.vue'
+import { computed, defineComponent, ref, toRaw } from 'vue';
+import { useVirtualScroll, useRender } from './hooks';
+import Line from './Line.vue';
 
-import type { PropType } from 'vue'
-import type { Mode, Theme, VirtualScroll } from './types'
+import type { PropType } from 'vue';
+import type { Mode, Theme, VirtualScroll } from './types';
 
 export default defineComponent({
   components: {
-    Line
+    Line,
   },
   props: {
     mode: {
       type: String as PropType<Mode>,
-      default: 'split'
+      default: 'split',
     },
     theme: {
       type: String as PropType<Theme>,
-      default: 'dark'
+      default: 'dark',
     },
     language: {
       type: String,
-      default: 'plaintext'
+      default: 'plaintext',
     },
     prev: {
       type: String,
-      default: ''
+      default: '',
     },
     current: {
       type: String,
-      default: ''
+      default: '',
     },
     folding: {
       type: Boolean,
-      default: false
+      default: false,
     },
     inputDelay: {
       type: Number,
-      default: 0
+      default: 0,
     },
     virtualScroll: {
-      type: [Boolean, Object] as PropType<boolean|VirtualScroll>,
-      default: false
-    }
+      type: [Boolean, Object] as PropType<boolean | VirtualScroll>,
+      default: false,
+    },
   },
-  setup (props) {
-    const viewer = ref<null|HTMLElement>(null)
+  setup(props) {
+    const viewer = ref<null | HTMLElement>(null);
     const scrollOptions = computed(() => {
-      if (!props.virtualScroll) return false
+      if (!props.virtualScroll) return false;
       return {
         height: 500,
         lineMinHeight: 24,
         delay: 100,
-        ...(typeof props.virtualScroll === 'object' ? toRaw(props.virtualScroll) : {})
-      }
-    })
-    const { meta, render, list } = useRender(props, viewer, scrollOptions)
-    const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta)
+        ...(typeof props.virtualScroll === 'object'
+          ? toRaw(props.virtualScroll)
+          : {}),
+      };
+    });
+    const { meta, render, list } = useRender(props, viewer, scrollOptions);
+    const { minHeight } = useVirtualScroll(props, viewer, scrollOptions, meta);
 
     const setLineHeight = (index: number, height: number) => {
       if (meta.value[index] && meta.value[index].height !== height) {
-        meta.value[index].height = height
+        meta.value[index].height = height;
       }
-    }
+    };
 
     return {
       list,
@@ -101,8 +102,8 @@ export default defineComponent({
       render,
       scrollOptions,
       setLineHeight,
-      viewer
-    }
-  }
-})
+      viewer,
+    };
+  },
+});
 </script>

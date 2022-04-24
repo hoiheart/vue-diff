@@ -1,30 +1,55 @@
 <template>
   <div class="form text-gray-100 mt-8">
     <label for="language" class="mr-2">Type:</label>
-    <select v-model="selected" id="language" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
-      <option :key="item.title" :value="item" v-for="item in list">{{ item.title }}</option>
+    <select
+      v-model="selected"
+      id="language"
+      class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300"
+    >
+      <option :key="item.title" :value="item" v-for="item in list">
+        {{ item.title }}
+      </option>
     </select>
     <label for="mode" class="mr-2">Mode:</label>
-    <select v-model="mode" id="mode" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
+    <select
+      v-model="mode"
+      id="mode"
+      class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300"
+    >
       <option :key="val" v-for="val in modes">{{ val }}</option>
     </select>
     <label for="theme" class="mr-2">Theme:</label>
-    <select v-model="theme" id="theme" class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300">
+    <select
+      v-model="theme"
+      id="theme"
+      class="bg-gray-900 w-40 py-1 px-3 mr-4 rounded border border-gray-500 text-gray-300"
+    >
       <option :key="val" v-for="val in themes">{{ val }}</option>
     </select>
     <label for="folding" class="mr-2">Folding:</label>
-    <input v-model="folding" type="checkbox" id="folding" class="form-checkbox" />
+    <input
+      v-model="folding"
+      type="checkbox"
+      id="folding"
+      class="form-checkbox"
+    />
   </div>
   <div class="editor text-gray-100 mt-8">
     <section>
       <h2 class="text-2xl font-bold mb-4">Editor</h2>
       <div>
         <h3 class="text-xl mb-4">Prev</h3>
-        <textarea v-model="prev" class="bg-gray-900 p-4 rounded-lg border-2 border-gray-500 text-gray-300"></textarea>
+        <textarea
+          v-model="prev"
+          class="bg-gray-900 p-4 rounded-lg border-2 border-gray-500 text-gray-300"
+        ></textarea>
       </div>
       <div>
         <h3 class="text-xl mb-4">Current</h3>
-        <textarea v-model="current" class="bg-gray-900 p-4 rounded-lg border-2 border-gray-500 text-gray-300"></textarea>
+        <textarea
+          v-model="current"
+          class="bg-gray-900 p-4 rounded-lg border-2 border-gray-500 text-gray-300"
+        ></textarea>
       </div>
     </section>
   </div>
@@ -49,46 +74,46 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
+import { defineComponent, ref, watch } from 'vue';
 
-import template from './template'
+import template from './template';
 
 export default defineComponent({
-  setup () {
-    const modes = ref(['split', 'unified'])
-    const mode = ref('split')
-    const selected = ref<null|{}>(null)
-    const themes = ref(['dark', 'light', 'custom'])
-    const theme = ref('dark')
-    const folding = ref(false)
+  setup() {
+    const modes = ref(['split', 'unified']);
+    const mode = ref('split');
+    const selected = ref<null | {}>(null);
+    const themes = ref(['dark', 'light', 'custom']);
+    const theme = ref('dark');
+    const folding = ref(false);
     const list = ref([
       {
         key: 'javascript',
         title: 'javascript',
         language: 'javascript',
         inputDelay: 0,
-        virtualScroll: false
+        virtualScroll: false,
       },
       {
         key: 'html',
         title: 'html',
         language: 'html',
         inputDelay: 0,
-        virtualScroll: false
+        virtualScroll: false,
       },
       {
         key: 'css',
         title: 'css',
         language: 'css',
         inputDelay: 0,
-        virtualScroll: false
+        virtualScroll: false,
       },
       {
         key: 'yaml',
         title: 'yaml',
         language: 'yaml',
         inputDelay: 0,
-        virtualScroll: false
+        virtualScroll: false,
       },
       {
         key: 'jquery',
@@ -98,23 +123,27 @@ export default defineComponent({
         virtualScroll: {
           height: 500,
           lineMinHeight: 24,
-          delay: 100
-        }
-      }
-    ])
+          delay: 100,
+        },
+      },
+    ]);
 
-    const prev = ref('')
-    const current = ref('')
-    selected.value = list.value[0]
+    const prev = ref('');
+    const current = ref('');
+    selected.value = list.value[0];
 
-    watch(() => selected.value, () => {
-      // @ts-ignore
-      prev.value = template[`${selected?.value.key}1`]
-      // @ts-ignore
-      current.value = template[`${selected?.value.key}2`]
-    }, {
-      immediate: true
-    })
+    watch(
+      () => selected.value,
+      () => {
+        // @ts-ignore
+        prev.value = template[`${selected?.value.key}1`];
+        // @ts-ignore
+        current.value = template[`${selected?.value.key}2`];
+      },
+      {
+        immediate: true,
+      },
+    );
 
     return {
       modes,
@@ -125,10 +154,10 @@ export default defineComponent({
       list,
       selected,
       prev,
-      current
-    }
-  }
-})
+      current,
+    };
+  },
+});
 </script>
 
 <style lang="scss">

@@ -3,7 +3,8 @@
     ref="line"
     class="vue-diff-row"
     :class="`vue-diff-row-${mode}`"
-    :style="rowStyle">
+    :style="rowStyle"
+  >
     <!-- split view -->
     <template v-if="mode === 'split'">
       <template :key="index" v-for="(line, index) in render">
@@ -52,86 +53,96 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
-import { useResizeObserver, useThrottleFn } from '@vueuse/core'
-import Code from './Code.vue'
-import { renderWords } from './utils'
+import { computed, defineComponent, ref } from 'vue';
+import { useResizeObserver, useThrottleFn } from '@vueuse/core';
+import Code from './Code.vue';
+import { renderWords } from './utils';
 
-import type { PropType } from 'vue'
-import type { Meta, Mode, Lines, Line, VirtualScroll } from './types'
+import type { PropType } from 'vue';
+import type { Meta, Mode, Lines, Line, VirtualScroll } from './types';
 
 export default defineComponent({
   components: {
-    Code
+    Code,
   },
   props: {
     mode: {
       type: String as PropType<Mode>,
-      required: true
+      required: true,
     },
     folding: {
       type: Boolean,
-      default: false
+      default: false,
     },
     language: {
       type: String,
-      required: true
+      required: true,
     },
     meta: {
       type: Object as PropType<Meta>,
-      required: true
+      required: true,
     },
     render: {
       type: Object as PropType<Lines>,
-      required: true
+      required: true,
     },
     scrollOptions: {
-      type: [Boolean, Object] as PropType<false|VirtualScroll>,
-      default: false
-    }
+      type: [Boolean, Object] as PropType<false | VirtualScroll>,
+      default: false,
+    },
   },
-  setup (props, { emit }) {
-    const line = ref<null|HTMLElement>(null)
+  setup(props, { emit }) {
+    const line = ref<null | HTMLElement>(null);
     const rowStyle = computed(() => {
-      if (!props.scrollOptions) return undefined
+      if (!props.scrollOptions) return undefined;
       return {
         position: 'absolute',
         left: 0,
         top: 0,
         transform: `translate3d(0, ${props.meta.top}px, 0)`,
-        minHeight: props.scrollOptions.lineMinHeight + 'px'
-      }
-    })
-    const isFoldLine = computed(() => props.folding && props.render[0].type === 'equal')
+        minHeight: props.scrollOptions.lineMinHeight + 'px',
+      } as const;
+    });
+    const isFoldLine = computed(
+      () => props.folding && props.render[0].type === 'equal',
+    );
 
     const setCode = (line: Line, render?: Lines, index?: number) => {
-      if (!line.value) return '\n'
+      if (!line.value) return '\n';
 
       // Compare lines when render, index properties exist and has chkWords value in line property
-      if (typeof render === 'undefined' || typeof index === 'undefined' || !line.chkWords) {
-        return line.value
+      if (
+        typeof render === 'undefined' ||
+        typeof index === 'undefined' ||
+        !line.chkWords
+      ) {
+        return line.value;
       }
 
-      const differ = render[index === 0 ? 1 : 0]
+      const differ = render[index === 0 ? 1 : 0];
 
-      if (!differ.value) return line.value
+      if (!differ.value) return line.value;
 
-      return renderWords(differ.value, line.value) // render with modified tags
-    }
+      return renderWords(differ.value, line.value); // render with modified tags
+    };
 
     const rendered = () => {
-      if (!line.value || props.meta.height === line.value.offsetHeight) return
-      emit('setLineHeight', props.meta.index, line.value.offsetHeight)
-    }
+      if (!line.value || props.meta.height === line.value.offsetHeight) return;
+      emit('setLineHeight', props.meta.index, line.value.offsetHeight);
+    };
 
     if (props.scrollOptions) {
-      useResizeObserver(line, useThrottleFn(() => {
-        if (!line.value || props.meta.height === line.value.offsetHeight) return
-        emit('setLineHeight', props.meta.index, line.value.offsetHeight)
-      }, props.scrollOptions.delay))
+      useResizeObserver(
+        line,
+        useThrottleFn(() => {
+          if (!line.value || props.meta.height === line.value.offsetHeight)
+            return;
+          emit('setLineHeight', props.meta.index, line.value.offsetHeight);
+        }, props.scrollOptions.delay),
+      );
     }
 
-    return { line, isFoldLine, rendered, rowStyle, setCode }
-  }
-})
+    return { line, isFoldLine, rendered, rowStyle, setCode };
+  },
+});
 </script>
