@@ -1,10 +1,9 @@
 // @ts-nocheck
-import jquery1 from './jquery-3.5.0.js?raw'
-import jquery2 from './jquery-3.6.0.js?raw'
+import jquery1 from './jquery-3.5.0.js?raw';
+import jquery2 from './jquery-3.6.0.js?raw';
 // @ts-check
 
-const javascript1 =
-`var a1 = {
+const javascript1 = `var a1 = {
   "name": "vue-diff",
   "version": "0.0.0",
   "description": "Vue diff viewer",
@@ -12,10 +11,9 @@ const javascript1 =
   "peerDependencies": {
     "vue": "^3.0.0"
   }
-}`
+}`;
 
-const javascript2 =
-`const b2 = {
+const javascript2 = `const b2 = {
   "name": "vue-diff",
   "version": "1.0.0",
   "description": "Vue diff viewer",
@@ -26,10 +24,9 @@ const javascript2 =
   "peerDependencies": {
     "vue": "^3.0.0"
   }
-}`
+}`;
 
-const html1 =
-`<!doctype html>
+const html1 = `<!doctype html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -40,10 +37,9 @@ const html1 =
   <div id="app"></div>
   <script type="module" src="/dev/main.ts"></script>
 </body>
-</html>`
+</html>`;
 
-const html2 =
-`<!doctype html>
+const html2 = `<!doctype html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -56,10 +52,9 @@ const html2 =
   <script type="module" src="/dev/main.ts"></script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
-</html>`
+</html>`;
 
-const css1 =
-`.vue-diff-wrapper {
+const css1 = `.vue-diff-wrapper {
   width: 100%;
 }
 
@@ -71,10 +66,9 @@ const css1 =
 .vue-diff-theme-light {
   @import 'highlight.js/scss/vs.scss';
   background-color: #fff;
-}`
+}`;
 
-const css2 =
-`.vue-diff-wrapper {
+const css2 = `.vue-diff-wrapper {
   overflow: hidden;
   width: 100%;
   border-radius: 0.3em;
@@ -88,10 +82,9 @@ const css2 =
 .vue-diff-theme-light {
   @import 'highlight.js/scss/vs.scss';
   background-color: #fff;
-}`
+}`;
 
-const yaml1 =
-`name: Release
+const yaml1 = `name: Release
 
 on:
   push:
@@ -99,17 +92,16 @@ on:
       - alpha
 
 jobs:
-  # job`
+  # job`;
 
-const yaml2 =
-`name: Release
+const yaml2 = `name: Release
 
 on:
   push:
     branches:
       - master
 
-jobs:`
+jobs:`;
 
 export default {
   javascript1,
@@ -121,5 +113,5 @@ export default {
   yaml1,
   yaml2,
   jquery1,
-  jquery2
-}
+  jquery2,
+};

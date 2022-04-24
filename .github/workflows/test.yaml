@@ -1,8 +1,5 @@
 name: Test
-on:
-  push:
-    branches:
-      - develop
+on: [push]
 jobs:
   test:
     name: test
@@ -15,10 +12,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 12
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint
-        run: npm run lint
+          node-version: 16
+      - name: Install
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install
       - name: Test
-        run: npm run test
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: test

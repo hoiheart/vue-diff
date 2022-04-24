@@ -1,60 +1,69 @@
-import { mount } from '@vue/test-utils'
-import VueDiff from '../src/index'
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import VueDiff from '../src/index';
 
 describe('Plugin and component', () => {
   it('Install plugin', () => {
-    const wrapper = mount({
-      template: `
+    const wrapper = mount(
+      {
+        template: `
         <Diff />
-      `
-    }, {
-      global: {
-        plugins: [
-          [VueDiff]
-        ]
-      }
-    })
-    expect(wrapper.find('.vue-diff-wrapper')).toBeTruthy()
-    expect(wrapper.find('.vue-diff-mode-split')).toBeTruthy()
-    expect(wrapper.find('.vue-diff-theme-dark')).toBeTruthy()
-  })
+      `,
+      },
+      {
+        global: {
+          plugins: [[VueDiff]],
+        },
+      },
+    );
+    expect(wrapper.find('.vue-diff-wrapper')).toBeTruthy();
+    expect(wrapper.find('.vue-diff-mode-split')).toBeTruthy();
+    expect(wrapper.find('.vue-diff-theme-dark')).toBeTruthy();
+  });
 
   it('Set plugin options', () => {
-    const wrapper = mount({
-      template: `
+    const wrapper = mount(
+      {
+        template: `
         <VueDiff />
-      `
-    }, {
-      global: {
-        plugins: [
-          [VueDiff, {
-            componentName: 'VueDiff'
-          }]
-        ]
-      }
-    })
-    expect(wrapper.find('.vue-diff-wrapper')).toBeTruthy()
-    expect(wrapper.find('.vue-diff-mode-split')).toBeTruthy()
-    expect(wrapper.find('.vue-diff-theme-dark')).toBeTruthy()
-  })
+      `,
+      },
+      {
+        global: {
+          plugins: [
+            [
+              VueDiff,
+              {
+                componentName: 'VueDiff',
+              },
+            ],
+          ],
+        },
+      },
+    );
+    expect(wrapper.find('.vue-diff-wrapper')).toBeTruthy();
+    expect(wrapper.find('.vue-diff-mode-split')).toBeTruthy();
+    expect(wrapper.find('.vue-diff-theme-dark')).toBeTruthy();
+  });
 
   it('Set component property', () => {
-    const wrapper = mount({
-      template: `
+    const wrapper = mount(
+      {
+        template: `
         <Diff
           mode="unified"
           theme="light"
         />
-      `
-    }, {
-      global: {
-        plugins: [
-          [VueDiff]
-        ]
-      }
-    })
-    expect(wrapper.find('.vue-diff-wrapper')).toBeTruthy()
-    expect(wrapper.find('.vue-diff-mode-unified')).toBeTruthy()
-    expect(wrapper.find('.vue-diff-theme-light')).toBeTruthy()
-  })
-})
+      `,
+      },
+      {
+        global: {
+          plugins: [[VueDiff]],
+        },
+      },
+    );
+    expect(wrapper.find('.vue-diff-wrapper')).toBeTruthy();
+    expect(wrapper.find('.vue-diff-mode-unified')).toBeTruthy();
+    expect(wrapper.find('.vue-diff-theme-light')).toBeTruthy();
+  });
+});

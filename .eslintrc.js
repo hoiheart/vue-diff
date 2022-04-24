@@ -1,30 +1,14 @@
 module.exports = {
-  root: true,
   env: {
-    node: true
+    browser: true,
+    es2021: true,
   },
-  extends: [
-    'plugin:vue/vue3-essential',
-    '@vue/standard',
-    '@vue/typescript/recommended'
-  ],
+  extends: ['plugin:vue/essential', 'standard', 'plugin:prettier/recommended'],
   parserOptions: {
-    ecmaVersion: 2020
+    ecmaVersion: 12,
+    parser: '@typescript-eslint/parser',
+    sourceType: 'module',
   },
-  rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-unused-expressions': 'off',
-    '@typescript-eslint/ban-ts-ignore': 'off'
-  },
-  overrides: [
-    {
-      files: [
-        '**/__tests__/*.{j,t}s?(x)'
-      ],
-      env: {
-        jest: true
-      }
-    }
-  ]
-}
+  plugins: ['vue', '@typescript-eslint'],
+  rules: {},
+};

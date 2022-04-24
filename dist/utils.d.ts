@@ -40,9 +40,9 @@ declare const renderWords: (prev: string, current: string) => string;
  * Set hightlight code
  * This function must calling at client only (use DOM)
  */
-declare const setHighlightCode: ({ highlightCode, language, code }: {
+declare const setHighlightCode: ({ highlightCode, language, code, }: {
     highlightCode: Ref;
     language: string;
     code: string;
 }) => void;
-export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode };
+export { MODIFIED_START_TAG, MODIFIED_CLOSE_TAG, getDiffType, getSplitLines, getUnifiedLines, renderLines, renderWords, setHighlightCode, };
