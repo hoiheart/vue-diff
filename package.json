@@ -33,14 +33,14 @@
   "dependencies": {
     "@vueuse/core": "^8.3.1",
     "diff-match-patch": "^1.0.5",
-    "highlight.js": "^11.5.1",
-    "vue": "^3.2.25"
+    "highlight.js": "^11.5.1"
   },
   "devDependencies": {
     "@semantic-release/git": "^10.0.1",
     "@types/diff-match-patch": "^1.0.32",
     "@vitejs/plugin-vue": "^2.3.1",
     "@vue/test-utils": "^2.0.0-rc.21",
+    "conventional-changelog-conventionalcommits": "^4.6.3",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-vue": "^8.7.1",
@@ -53,16 +53,8 @@
     "vite": "^2.9.5",
     "vite-plugin-dts": "^1.1.0",
     "vitest": "^0.9.4",
+    "vue": "^3.2.25",
     "vue-tsc": "^0.34.7"
-  },
-  "lint-staged": {
-    "src/*.{js,jsx,vue,ts,tsx}": [
-      "eslint",
-      "git add"
-    ]
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
   },
   "release": {
     "plugins": [

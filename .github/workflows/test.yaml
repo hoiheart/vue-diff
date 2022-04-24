@@ -1,5 +1,11 @@
 name: Test
-on: [push]
+on:
+  push:
+    branches:
+      - '*'
+      - '*/*'
+      - '**'
+      - '!master'
 jobs:
   test:
     name: test
@@ -17,6 +23,10 @@ jobs:
         uses: borales/actions-yarn@v2.3.0
         with:
           cmd: install
+      - name: Lint
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: eslint
       - name: Test
         uses: borales/actions-yarn@v2.3.0
         with:
