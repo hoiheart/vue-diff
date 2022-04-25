@@ -5578,6 +5578,7 @@ const setHighlightCode = ({
   const startEntity = MODIFIED_START_TAG.replace("<", "&lt;").replace(">", "&gt;");
   const closeEntity = MODIFIED_CLOSE_TAG.replace("<", "&lt;").replace(">", "&gt;");
   highlightCode.value = pureElement.innerHTML.replace(new RegExp(startEntity, "g"), '<span class="modified">').replace(new RegExp(closeEntity, "g"), "</span>");
+  console.log(highlightCode.value);
   pureElement = null;
 };
 const useRender = (props, viewer, scrollOptions) => {
@@ -5973,4 +5974,4 @@ var index = {
   },
   hljs: HighlightJS
 };
-export { index as default };
+export { Diff, index as default };
