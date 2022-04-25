@@ -5,6 +5,12 @@ import './style.scss';
 import type { App } from 'vue';
 import type { PluginOptions } from './types';
 
+declare module '@vue/runtime-core' {
+  export interface GlobalComponents {
+    Diff: typeof Diff;
+  }
+}
+
 export default {
   install: (app: App, options = {}) => {
     const { componentName = 'Diff' } = options as PluginOptions;
@@ -13,3 +19,5 @@ export default {
   },
   hljs,
 };
+
+export { Diff }
