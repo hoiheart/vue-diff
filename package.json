@@ -47,6 +47,7 @@
     "eslint-plugin-vue": "^8.7.1",
     "jsdom": "^19.0.0",
     "prettier": "2.6.2",
+    "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.50.1",
     "sass-loader": "^12.6.0",
     "typescript": "^4.6.3",
