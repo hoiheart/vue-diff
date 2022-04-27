@@ -3,6 +3,7 @@ const path = require('path');
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import dts from 'vite-plugin-dts';
+import { terser } from 'rollup-plugin-terser';
 
 export default defineConfig({
   build: {
@@ -22,6 +23,14 @@ export default defineConfig({
           return assetInfo.name;
         },
       },
+      plugins: [
+        terser({
+          compress: {
+            defaults: false,
+            drop_console: true,
+          },
+        }),
+      ],
     },
   },
   plugins: [vue(), dts()],
