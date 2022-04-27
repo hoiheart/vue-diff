@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   base: '/vue-diff/demo/',
   build: {
-    outDir: 'demo',
+    outDir: 'docs',
     assetsDir: './',
   },
   plugins: [vue()],
