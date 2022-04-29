@@ -24,10 +24,10 @@ jobs:
         uses: borales/actions-yarn@v2.3.0
         with:
           cmd: build
-      - name: Docs
+      - name: Predeploy
         uses: borales/actions-yarn@v2.3.0
         with:
-          cmd: deploy
+          cmd: predeploy
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
