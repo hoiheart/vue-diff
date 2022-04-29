@@ -20,14 +20,19 @@ jobs:
         uses: borales/actions-yarn@v2.3.0
         with:
           cmd: install
-      - name: Demo
-        uses: borales/actions-yarn@v2.3.0
-        with:
-          cmd: build:demo
       - name: Build
         uses: borales/actions-yarn@v2.3.0
         with:
           cmd: build
+      - name: Docs
+        uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: deploy
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
       - name: Release
         uses: cycjimmy/semantic-release-action@v2
         with:
