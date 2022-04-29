@@ -26,7 +26,7 @@ Vue diff viewer plugin for Vue@3
 
 You can see the difference between the two codes with the `vue-diff` plugin.  
 This plugin dependent on <a href="https://github.com/JackuB/diff-match-patch">diff-match-patch</a> and <a href="https://github.com/highlightjs/highlight.js/">highlight.js</a>, shows similar results to other diff viewers (e.g., Github Desktop).  
-Here is the <a href="https://hoiheart.github.io/vue-diff/demo/index.html" target="_blank" style="font-size: 1.2em; text-decoration: underline;">demo</a>
+Here is the <a href="https://hoiheart.github.io/vue-diff/index.html" target="_blank" style="font-size: 1.2em; text-decoration: underline;">demo</a>
 
 ## Features
 
