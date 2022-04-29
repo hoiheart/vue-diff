@@ -1,7 +1,7 @@
 # vue-diff
 
 Vue diff viewer plugin for Vue@3  
-<a href="https://hoiheart.github.io/vue-diff/demo/index.html" target="_blank">demo</a>
+<a href="https://hoiheart.github.io/vue-diff/index.html" target="_blank">demo</a>
 
 ## Table of Contents
 
