@@ -26,7 +26,7 @@
     "dev": "vite -c vite.config.demo.ts",
     "build": "vue-tsc --noEmit && vite build",
     "predeploy": "vite build -c vite.config.docs.ts",
-    "deploy": "gh-pages -d docs -r https://github.com/hoiheart/vue-diff.git",
+    "deploy": "gh-pages -d docs -r origin",
     "test": "vitest --run"
   },
   "main": "./dist/index.umd.js",
