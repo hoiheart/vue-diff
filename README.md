@@ -105,16 +105,16 @@ Insert the diff component with props.
 
 ### Props
 
-| name          | type              | detault     | values             | description                                                                                                                                 |
-| ------------- | ----------------- | ----------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| mode          | `string`          | `split`     | `split`, `unified` |
-| theme         | `string`          | `dark`      | `dark`, `light`    | See <a href="#custom-theme">Custom theme</a>                                                                                                |
-| language      | `string`          | `plaintext` |                    | See <a href="#extend-languages">Extend languages</a>                                                                                        |
-| prev          | `string`          | `''`        |                    | Prev code                                                                                                                                   |
-| current       | `string`          | `''`        |                    | Current Code                                                                                                                                |
-| folding       | `boolean`         | `false`     |                    | Folding not different                                                                                                                       |
-| inputDelay    | `number`          | `0`         |                    | Setting up rendering debounce for changes for performance benefit (mode, prev, curr)                                                        |
-| virtualScroll | `boolean\|object` | `false`     |                    | _Default value when setting true :_<br>`{ height: 500, lineMinHeight: 24, delay: 100 }`<br>See <a href="#virtual-scroll">virtual scroll</a> |
+| name          | type              | detault     | values                             | description                                                                                                                                 |
+| ------------- | ----------------- | ----------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| mode          | `string`          | `split`     | `split`, `unified`                 |
+| theme         | `string`          | `dark`      | `dark`, `light`, `custom${string}` | See <a href="#custom-theme">Custom theme</a>                                                                                                |
+| language      | `string`          | `plaintext` |                                    | See <a href="#extend-languages">Extend languages</a>                                                                                        |
+| prev          | `string`          | `''`        |                                    | Prev code                                                                                                                                   |
+| current       | `string`          | `''`        |                                    | Current Code                                                                                                                                |
+| folding       | `boolean`         | `false`     |                                    | Folding not different                                                                                                                       |
+| inputDelay    | `number`          | `0`         |                                    | Setting up rendering debounce for changes for performance benefit (mode, prev, curr)                                                        |
+| virtualScroll | `boolean\|object` | `false`     |                                    | _Default value when setting true :_<br>`{ height: 500, lineMinHeight: 24, delay: 100 }`<br>See <a href="#virtual-scroll">virtual scroll</a> |
 
 ## Custom theme
 
@@ -131,6 +131,7 @@ npm install highlight.js
 <template>
   <Diff
     :mode="mode"
+    <!-- Characters that begin with custom -->
     theme="custom"
     :language="language"
     :prev="prev"
