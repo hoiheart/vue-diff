@@ -23,7 +23,7 @@
     "url": "https://github.com/hoiheart/vue-diff/issues"
   },
   "scripts": {
-    "dev": "vite -c vite.config.demo.ts",
+    "dev": "vite -c vite.config.docs.ts",
     "build": "vue-tsc --noEmit && vite build",
     "predeploy": "vite build -c vite.config.docs.ts",
     "deploy": "gh-pages -d docs -r origin",

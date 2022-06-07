@@ -74,19 +74,34 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { Mode, Theme } from '../src/types';
+import { defineComponent, Ref, ref, watch } from 'vue';
 
 import template from './template';
 
+interface ListItem {
+  key: string;
+  title: string;
+  language: string;
+  inputDelay: number;
+  virtualScroll:
+    | false
+    | {
+        height: number;
+        lineMinHeight: number;
+        delay: number;
+      };
+}
+
 export default defineComponent({
   setup() {
-    const modes = ref(['split', 'unified']);
-    const mode = ref('split');
-    const selected = ref<null | {}>(null);
-    const themes = ref(['dark', 'light', 'custom']);
-    const theme = ref('dark');
+    const modes = ref<Mode[]>(['split', 'unified']);
+    const mode = ref<Mode>('split');
+    const selected = ref<ListItem | null>(null);
+    const themes = ref<Theme[]>(['dark', 'light', 'custom']);
+    const theme = ref<Theme>('dark');
     const folding = ref(false);
-    const list = ref([
+    const list = ref<ListItem[]>([
       {
         key: 'javascript',
         title: 'javascript',
