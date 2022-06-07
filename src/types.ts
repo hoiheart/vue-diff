@@ -5,7 +5,7 @@ export interface PluginOptions {
 }
 
 export type Mode = 'split' | 'unified';
-export type Theme = 'dark' | 'light' | 'custom';
+export type Theme = 'dark' | 'light' | `custom${string}`;
 export type Role = 'prev' | 'current' | 'unified';
 
 export interface Line {
