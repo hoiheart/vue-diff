@@ -3,7 +3,7 @@ export interface PluginOptions {
     componentName: string;
 }
 export declare type Mode = 'split' | 'unified';
-export declare type Theme = 'dark' | 'light' | 'custom';
+export declare type Theme = 'dark' | 'light' | `custom${string}`;
 export declare type Role = 'prev' | 'current' | 'unified';
 export interface Line {
     type?: string;
