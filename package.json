@@ -60,6 +60,9 @@
     "vue-tsc": "^0.34.7"
   },
   "release": {
+    "branches": [
+      "main"
+    ],
     "plugins": [
       [
         "@semantic-release/commit-analyzer",
